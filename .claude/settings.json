@@ -6,7 +6,10 @@
       "Bash(git add *)",
       "Bash(git commit -q -m '@ *)",
       "Bash(rm -f sygnia.application/Class1.cs sygnia.domain/Class1.cs sygnia.infrastructure/Class1.cs)",
-      "Bash(dotnet build *)"
+      "Bash(dotnet build *)",
+      "Bash(rm -f sygnia.backend.sln)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet sln *)"
     ]
   }
 }
