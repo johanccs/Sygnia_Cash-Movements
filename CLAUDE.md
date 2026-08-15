@@ -9,13 +9,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/Senior_C___NET_Developer__Backend__Assignment.pdf` — the assignment brief and **authoritative requirements source**. A PDF, so read it explicitly when requirements are in question rather than inferring from the notes.
 - `docs/first_draft.md` — the worked plan and **design of record**.
 - `docs/planning.md` — the developer's raw, out-of-order notes. High-level intent; deliberately names no projects. Source of the coding standards (§11) and the diagram list (§12).
-- `planning/one.md` — the concrete implementation step now in flight.
+- `planning/` — numbered implementation steps, one file per step (`one_…`, `two-…`). **A `-done` suffix in the filename means that step is complete**; the current step is the highest-numbered file without one. Today: `two-domain.md`.
 
 **Document precedence — the more specific document wins.** These three operate at descending levels of abstraction, and they have already drifted apart once:
 
-`docs/planning.md` (high-level intent) → `docs/first_draft.md` (design of record) → `planning/one.md` (current step, **overrides both**)
+`docs/planning.md` (high-level intent) → `docs/first_draft.md` (design of record) → the current `planning/` step file (**overrides both**)
 
-When `one.md` contradicts `first_draft.md`, `one.md` is right and `first_draft.md` should be reconciled to it — not the other way round.
+When the step file contradicts `first_draft.md`, the step file is right and `first_draft.md` should be reconciled to it — not the other way round. Note that `first_draft.md` still cites `planning/one.md` by name in several places; those are historical references to the scaffold step, now `one_project-scaffold-done.md`.
 
 There are **no build/test/lint commands yet**. After scaffolding, replace this section with the real ones. The intended commands (from `first_draft.md`):
 
@@ -36,7 +36,7 @@ docker compose up -d                                  # SQL Server + Seq + Jaege
 - **Out:** Redis, Swagger, MediatR and its pipeline behaviours, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
 
-The front end was originally out of scope and `planning/one.md` put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
+The front end was originally out of scope and the scaffold step (`planning/one_project-scaffold-done.md`) put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
 
 ## The two invariants that carry the solution
 
@@ -111,6 +111,8 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 3. When the feature is complete, open a PR.
 4. **The PR must be approved before merging.** Approval is the user's — never self-merge. Open the PR, report it, and stop there; the user reviews, approves, and says when to merge.
 5. Once merged, delete the feature or bug branch (local and remote).
-6. Read `planning/one.md` for the current step.
-7. For .net solution - implement Directory.Build for centralization
-8. Add node_modules to .gitignore
+6. **Read the current step file in `planning/`** — the highest-numbered one *without* a `-done` suffix — and execute it. It is an instruction to act on, not just context to read. When it is finished, rename it with a `-done` suffix.
+7. For .NET projects, keep build config centralised in `Directory.Build.props` / `Directory.Packages.props` — never repeat `TargetFramework` or package versions in a `.csproj`.
+8. Keep `node_modules` out of git.
+
+**Renaming a file by case only needs a two-step `git mv`** (`Foo` → `tmp` → `FOO`). Windows is case-insensitive, so a direct rename leaves git tracking the old path while disk shows the new one — it builds locally and breaks on any case-sensitive checkout.
