@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    .NET Framework 4.8, deliberately outside the net8.0 default in Directory.Build.props:
+    ServiceHost (WCF server hosting) requires the full framework, and this is the one
+    project in the solution that can't share that default. See CLAUDE.md's Known traps.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="All" />
+    <PackageReference Include="System.Net.Http.WinHttpHandler" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\Sygnia.Presentation\Protos\movements.proto" GrpcServices="Client" Link="Protos\movements.proto" />
+  </ItemGroup>
+
+</Project>
