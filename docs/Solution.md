@@ -4,4 +4,9 @@
         - Vertical slices
 
 2. Orm - ef core 8
-3. 
+3.
+
+## Deliberate scope omissions
+
+- **Redis, Swagger, GitHub Pages** — cut from `planning.md`'s broader scope; not needed to satisfy the assignment brief.
+- **MediatR / pipeline behaviours** — out at the solution root, but opted back in for `Sygnia.Application` specifically (see `src/Sygnia.Backend/src/Sygnia.Application/CLAUDE.md`): commands/queries as records, private sealed handlers, FluentValidation, and a logging pipeline behaviour, registered via an `AppModuleExtensions` DI extension. Scoped to that project rather than solution-wide to keep the dependency out of `Sygnia.Domain` and `Sygnia.Presentation`.

@@ -9,7 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/Senior_C___NET_Developer__Backend__Assignment.pdf` — the assignment brief and **authoritative requirements source**. A PDF, so read it explicitly when requirements are in question rather than inferring from the notes.
 - `docs/first_draft.md` — the worked plan and **design of record**.
 - `docs/planning.md` — the developer's raw, out-of-order notes. High-level intent; deliberately names no projects. Source of the coding standards (§11) and the diagram list (§12).
-- `planning/` — numbered implementation steps, one file per step (`one_…`, `two-…`). **A `-done` suffix in the filename means that step is complete**; the current step is the highest-numbered file without one. Today: `two-domain.md`.
+- `planning/` — numbered implementation steps, one file per step (`one_…`, `two-…`). **A `-done` suffix in the filename means that step is complete**; the current step is the highest-numbered file without one. A step whose guidance stays useful after it ships may instead be folded into a nested `CLAUDE.md` in the project it describes — as the domain step was, into `src/Sygnia.Backend/Sygnia.Domain/CLAUDE.md`.
+
+**Nested `CLAUDE.md` files** live beside the code they govern and load automatically when working in that folder. `src/Sygnia.Backend/Sygnia.Domain/CLAUDE.md` holds the domain-layer rules; read it before touching that project rather than relying on the summary here.
 
 **Document precedence — the more specific document wins.** These three operate at descending levels of abstraction, and they have already drifted apart once:
 
@@ -23,8 +25,8 @@ There are **no build/test/lint commands yet**. After scaffolding, replace this s
 dotnet build && dotnet test
 dotnet test --filter FullyQualifiedName~Concurrent   # the idempotency-under-race test
 dotnet test --filter FullyQualifiedName~Statement    # the 50k-row streaming test
-dotnet run --project src/sygnia.backend/sygnia.presentation
-ng build                                              # from src/sygnia.frontend
+dotnet run --project src/Sygnia.Backend/Sygnia.Presentation
+ng build                                              # from src/Sygnia.Frontend
 docker compose up -d                                  # SQL Server + Seq + Jaeger + host + SPA
 ```
 
@@ -32,8 +34,9 @@ docker compose up -d                                  # SQL Server + Seq + Jaege
 
 `planning.md` lists more than the brief asks for, and the scope has been narrowed to the following. Do not add anything from the Out list without being asked:
 
-- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`sygnia.frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
-- **Out:** Redis, Swagger, MediatR and its pipeline behaviours, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
+- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`Sygnia.Frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
+- **Out:** Redis, Swagger, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
+- **Opt-in:** MediatR and its pipeline behaviours — out at the root scope, but a project's own nested `CLAUDE.md` may opt back in for itself (as `Sygnia.Application`'s does). A nested opt-in overrides this section for that project only, per the document-precedence rule above; record the opt-in and its reasoning in `SOLUTION.md`.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
 
 The front end was originally out of scope and the scaffold step (`planning/one_project-scaffold-done.md`) put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
@@ -52,20 +55,32 @@ Clean Architecture, dependencies inward only. Each project exposes public interf
 
 ```
 src/
-├─ sygnia.frontend/                Angular 18 SPA — gRPC-Web clients
-└─ sygnia.backend/                 .NET 8 solution
-    ├─ sygnia.domain/              no dependencies. Movement, Account, Result<T>, Error. AddDomain()
-    ├─ sygnia.application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
-    │                              private sealed handlers, FluentValidation. AddApplication()
-    ├─ sygnia.infrastructure/      DbContext + composite-key config, repositories incl. the 2627
-    │                              catch. AddInfrastructure(connectionString)
-    ├─ sygnia.presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
-    │                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
-    └─ sygnia.wcf.gateway/         .NET Framework 4.8 — built LAST
-tests/
-├─ sygnia.unittests/               domain guards, balance math, Result mapping
-└─ sygnia.integrationtests/        Testcontainers — real SQL Server, not in-memory
+├─ Sygnia.Frontend/                    Angular 18 SPA — gRPC-Web clients
+└─ Sygnia.Backend/                     .NET 8 solution
+    ├─ Sygnia.Backend.sln              src/ and tests/ also exist as solution folders
+    ├─ global.json                     pins SDK 8.0.319
+    ├─ Directory.Build.props           shared build properties
+    ├─ Directory.Packages.props        central package management
+    ├─ src/
+    │   ├─ Sygnia.Domain/              no dependencies. Models/ (Movement, Account, User),
+    │   │                              Helpers/ (Guard, Result<T>, Error). AddDomain()
+    │   ├─ Sygnia.Application/         ports (IMovementRepository, IBalanceReader,
+    │   │                              IStatementReader), private sealed handlers,
+    │   │                              FluentValidation. AddApplication()
+    │   ├─ Sygnia.Infrastructure/      DbContext + composite-key config, repositories incl.
+    │   │                              the 2627 catch. AddInfrastructure(connectionString)
+    │   ├─ Sygnia.Presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
+    │   │                              Result<T> → StatusCode mapping. Program.cs is four AddX()
+    │   └─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
+    └─ tests/
+        └─ Sygnia.Tests/               unit tests now, integration tests later — hence the
+                                       plain name rather than Sygnia.UnitTests
 ```
+
+The `src` and `tests` directories are mirrored by **solution folders** of the same names in
+`Sygnia.Backend.sln`, so Solution Explorer and disk agree.
+
+**Tests live *inside* `src/Sygnia.Backend/`, not beside `src/`.** They have to: `global.json` and the two `Directory.*.props` files sit at `src/Sygnia.Backend/`, and MSBuild only discovers them by walking *up* from a project. A test project at the repo root would silently miss all three — resolving the .NET 10 preview SDK instead of 8, and losing central package management.
 
 Reference direction — easiest thing to get wrong in a scaffold, hardest to unpick later:
 
@@ -96,7 +111,7 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 - Transfers are one atomic `Transfer` RPC writing both legs in a single transaction.
 - Money crosses the gRPC wire as a **string** decimal (`"12500.00"`), not a `double` — protobuf has no decimal type and `double` corrupts cents. Timestamps are `google.protobuf.Timestamp`, UTC.
 - Status mapping, done once in the interceptor and service and nowhere else: validation → `INVALID_ARGUMENT`; unknown account → `NOT_FOUND`; same key + same fields → `OK` with the stored movement; same key + different fields → `ALREADY_EXISTS` plus the conflicting field names; anything unexpected → `INTERNAL`.
-- **The front end forces gRPC-Web.** A browser cannot speak native gRPC (no access to HTTP/2 trailers), so `sygnia.presentation` must enable `Grpc.AspNetCore.Web` — `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint — and CORS for the Angular origin. gRPC-Web *does* support server streaming (it drops only client and bidirectional streaming), so `StreamStatement` survives the browser hop intact.
+- **The front end forces gRPC-Web.** A browser cannot speak native gRPC (no access to HTTP/2 trailers), so `Sygnia.Presentation` must enable `Grpc.AspNetCore.Web` — `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint — and CORS for the Angular origin. gRPC-Web *does* support server streaming (it drops only client and bidirectional streaming), so `StreamStatement` survives the browser hop intact.
 
 ## Known traps
 

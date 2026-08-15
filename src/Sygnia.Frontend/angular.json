@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "sygnia.frontend": {
+    "Sygnia.Frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -20,7 +20,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/sygnia.frontend",
+            "outputPath": "dist/Sygnia.Frontend",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -67,10 +67,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "sygnia.frontend:build:production"
+              "buildTarget": "Sygnia.Frontend:build:production"
             },
             "development": {
-              "buildTarget": "sygnia.frontend:build:development"
+              "buildTarget": "Sygnia.Frontend:build:development"
             }
           },
           "defaultConfiguration": "development"

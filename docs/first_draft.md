@@ -39,8 +39,8 @@ additional signal — without letting those extras erode the core.
 | Question | Decision |
 |---|---|
 | Scope | Brief-only core, **plus** an Angular 18 front end, structured logging (Seq) and tracing (Jaeger) |
-| Solution layout | `src/sygnia.frontend` (Angular) and `src/sygnia.backend` (.NET 8 solution), per `planning/one.md` |
-| Backend layers | `sygnia.presentation`, `sygnia.application`, `sygnia.domain`, `sygnia.infrastructure` |
+| Solution layout | `src/Sygnia.Frontend` (Angular) and `src/Sygnia.Backend` (.NET 8 solution), per `planning/one.md` |
+| Backend layers | `Sygnia.Presentation`, `Sygnia.Application`, `Sygnia.Domain`, `Sygnia.Infrastructure` |
 | WCF gateway | Designed now, **built last**, only if the core is green |
 | Conflicting resubmit | Reject with gRPC `ALREADY_EXISTS` naming the mismatched fields |
 | Balance | `SUM(amount)` aggregate on read; document the materialised alternative |
@@ -54,7 +54,7 @@ not in the brief; each is noted in `SOLUTION.md` as a deliberate omission rather
 oversight.
 
 > **The front end was previously in this list and no longer is.** `planning/one.md`
-> puts `sygnia.frontend` (Angular 18) in the scaffold, so it is in scope. Sequencing
+> puts `Sygnia.Frontend` (Angular 18) in the scaffold, so it is in scope. Sequencing
 > still matters: the backend core (build order steps 1–8 below) must reach green
 > *before* frontend work starts, because the core is what the assignment grades and the
 > front end earns no marks of its own.
@@ -165,35 +165,36 @@ interfaces plus one DI extension; everything else is `private sealed`.
 
 ```
 src/
-├─ sygnia.frontend/                Angular 18 SPA
+├─ Sygnia.Frontend/                Angular 18 SPA
 │   ├─ dashboard, account setup, create movement, balance, statement
 │   └─ services: account, movement, balance, statement (gRPC-Web clients)
 │
-└─ sygnia.backend/                 .NET 8 solution
-    ├─ sygnia.domain/              no dependencies
+└─ Sygnia.Backend/                 .NET 8 solution
+    ├─ Sygnia.Domain/              no dependencies
     │   ├─ Movement, Account       sealed; readonly properties; guards throw
     │   ├─ Result<T>, Error        expected failures as values
     │   └─ AddDomain()
-    ├─ sygnia.application/         depends on domain
+    ├─ Sygnia.Application/         depends on domain
     │   ├─ ports: IMovementRepository, IBalanceReader, IStatementReader
     │   ├─ private sealed handlers SubmitMovement, Transfer, GetBalance, StreamStatement
     │   ├─ FluentValidation validators
     │   └─ AddApplication()
-    ├─ sygnia.infrastructure/      depends on application + domain
+    ├─ Sygnia.Infrastructure/      depends on application + domain
     │   ├─ CashMovementsDbContext  composite-key configuration
     │   ├─ private sealed repositories, incl. the 2627 catch
     │   └─ AddInfrastructure(connectionString)
-    ├─ sygnia.presentation/        gRPC host — composition root
+    ├─ Sygnia.Presentation/        gRPC host — composition root
     │   ├─ Protos/cash_movements.proto
     │   ├─ CashMovementsService    maps Result<T> → StatusCode
     │   ├─ ErrorInterceptor        the global handler (ProblemDetails equivalent)
     │   └─ Program.cs              four AddX() calls, nothing else
-    └─ sygnia.wcf.gateway/         .NET Framework 4.8 — built LAST
+    └─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
         └─ one NetTcp operation: GetBalance(accountId), as a gRPC client
 
 tests/
-├─ sygnia.unittests/               domain guards, balance math, Result mapping
-└─ sygnia.integrationtests/        Testcontainers — real SQL Server
+└─ Sygnia.Tests/                   one project for both unit and integration tests:
+                                   domain guards, balance math, Result mapping, and
+                                   Testcontainers against real SQL Server
 ```
 
 Reference direction, which is the thing easiest to get wrong in a scaffold and hardest
@@ -273,8 +274,8 @@ Error mapping — done once, in the interceptor and the service, and nowhere els
 ### The front end forces gRPC-Web
 
 A browser cannot speak native gRPC — it has no access to HTTP/2 trailers and frames.
-Adding `sygnia.frontend` therefore adds a hard backend requirement:
-`sygnia.presentation` must enable **gRPC-Web** (`Grpc.AspNetCore.Web` —
+Adding `Sygnia.Frontend` therefore adds a hard backend requirement:
+`Sygnia.Presentation` must enable **gRPC-Web** (`Grpc.AspNetCore.Web` —
 `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint) and CORS for the Angular origin.
 The Angular side generates TypeScript clients from the same `.proto`.
 
@@ -296,12 +297,12 @@ solution compiling and green.
 Steps 1–8 are the graded core. Steps 9–12 are additional signal and are sacrificed
 first if time runs short — **ask before dropping one**, rather than deciding silently.
 
-1. **Scaffold** — `planning/one.md`: `src/sygnia.frontend` (Angular 18) and
-   `src/sygnia.backend` (.NET 8 solution, four projects, reference direction as above).
+1. **Scaffold** — `planning/one.md`: `src/Sygnia.Frontend` (Angular 18) and
+   `src/Sygnia.Backend` (.NET 8 solution, four projects, reference direction as above).
    Compile and build both.
    *Done when:* `dotnet build` succeeds and `ng build` succeeds.
-2. **Test projects** — `sygnia.unittests`, `sygnia.integrationtests`, wired into the
-   solution. *Done when:* `dotnet test` runs and reports zero tests, zero failures.
+2. **Test project** — `Sygnia.Tests`, wired into the solution. One project carries both unit
+   and integration tests. *Done when:* `dotnet test` runs and reports zero failures.
 3. **Domain (TDD)** — tests first for the guard clauses: null account id throws, blank
    currency throws, zero amount throws. Then `Movement`, `Account`, `Result<T>`.
    *Done when:* every guard has a red-then-green test.
@@ -363,7 +364,7 @@ correct, and process memory stays flat — proving nothing was materialised.
 **End to end, by hand:**
 ```bash
 docker compose up -d            # SQL Server, Seq, Jaeger, gRPC host, Angular
-dotnet run --project src/sygnia.backend/sygnia.presentation
+dotnet run --project src/Sygnia.Backend/Sygnia.Presentation
 grpcurl -plaintext localhost:5001 list          # contract is discoverable
 # submit a movement, submit it again → second returns the same stored row
 # submit it a third time with a different amount → ALREADY_EXISTS
