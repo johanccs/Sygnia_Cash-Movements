@@ -125,7 +125,33 @@ caller. These aren't in tension — see `Sygnia.Domain/CLAUDE.md` for the full r
   would be accepted as distinct values today. Flagged in `Sygnia.Domain/CLAUDE.md` as a known
   gap rather than silently fixed, since no test currently covers the behaviour either way.
 - **No maker/checker, no batching, no file export** — all explicitly optional in the brief and
-  cut for time; see the WCF gateway note below for the same reasoning applied to Task 3.
+  cut for time.
+
+## Legacy gateway (Task 3, optional) — implemented
+
+`Sygnia.Wcf.Gateway` is a self-hosted WCF NetTcp service exposing one operation,
+`GetBalance(accountId)`, that calls the same gRPC `GetBalance` RPC the Angular frontend and
+`grpcurl` use — so the legacy and modern entry points are guaranteed to return identical
+balances for identical data, by construction rather than by duplicated logic.
+
+**HTTP/2 from .NET Framework:** `Grpc.Net.Client`'s default `HttpClientHandler` on .NET
+Framework doesn't support HTTP/2 trailers, so the gateway uses `System.Net.Http.WinHttpHandler`
+instead — the same class of constraint that forces gRPC-Web on the browser side, solved
+differently here since the gateway is a native .NET Framework process, not a browser.
+
+**Error handling:** matches the "one global error handler per transport" rule elsewhere in the
+solution — a `GrpcErrorHandler` (`IErrorHandler`) attached via a service behavior catches
+anything unhandled and turns it into a clean `FaultException<BalanceFault>`; `RpcException`s
+from the gRPC call are mapped the same way in `BalanceService` itself. No exception details
+reach the wire.
+
+**Client:** `Sygnia.WpfClient`, a minimal WPF app, plays the "legacy tool" consuming the
+gateway — it shares the WCF contract types directly (linked files, both projects being net48)
+rather than generating a service reference.
+
+**Simplification:** no retry/resilience policy on either hop (WCF→gRPC or WPF→WCF) — a single
+attempt, with the failure surfaced to the user. No authentication on the NetTcp endpoint,
+matching the rest of the take-home's unauthenticated surface.
 
 ## Deliberate scope omissions
 
@@ -139,9 +165,6 @@ caller. These aren't in tension — see `Sygnia.Domain/CLAUDE.md` for the full r
   sealed handlers, FluentValidation, and a logging pipeline behaviour, registered via an
   `AppModuleExtensions` DI extension. Scoped to that project rather than solution-wide to keep
   the dependency out of `Sygnia.Domain` and `Sygnia.Presentation`.
-- **WCF (NetTcp) legacy gateway (Task 3, optional)** — not implemented. Sequenced last per the
-  root `CLAUDE.md` because it's Windows-only and bonus signal rather than graded core; the core
-  gRPC service and its two invariants were prioritised first.
 - **Optional extensions** (batch submission, file-format statement export, a progress-showing
   client utility) — not built; all explicitly "only if time allows" in the brief.
 
