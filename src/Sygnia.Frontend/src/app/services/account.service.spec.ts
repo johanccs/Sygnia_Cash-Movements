@@ -1,7 +1,7 @@
 import { firstValueFrom } from 'rxjs';
 import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import { AccountService } from './account.service';
-import { Account } from '../grpc/accounts_pb';
+import { Account, ListAccountsResponse } from '../grpc/accounts_pb';
 
 describe('AccountService', () => {
   it('maps a created Account to a plain DTO', async () => {
@@ -82,5 +82,33 @@ describe('AccountService', () => {
     const service = new AccountService(client);
 
     await expectAsync(firstValueFrom(service.getAccount('ACC-404'))).toBeRejectedWith(rpcError);
+  });
+
+  it('maps ListAccounts response to plain DTOs', async () => {
+    const client = jasmine.createSpyObj('AccountServiceClient', ['listAccounts']);
+    const proto = new Account();
+    proto.setAccountId('ACC-001');
+    proto.setAccountName('Acme Corp');
+    proto.setContactPerson('Jane Doe');
+    proto.setCurrency('ZAR');
+    proto.setCreatedBy('admin1');
+    const response = new ListAccountsResponse();
+    response.setAccountsList([proto]);
+    client.listAccounts.and.callFake((_req: unknown, _meta: unknown, cb: Function) => cb(null, response));
+    const service = new AccountService(client);
+
+    const result = await firstValueFrom(service.listAccounts());
+
+    expect(result.length).toBe(1);
+    expect(result[0].accountId).toBe('ACC-001');
+  });
+
+  it('propagates errors from listAccounts', async () => {
+    const client = jasmine.createSpyObj('AccountServiceClient', ['listAccounts']);
+    const rpcError = { code: 13, message: 'internal' };
+    client.listAccounts.and.callFake((_req: unknown, _meta: unknown, cb: Function) => cb(rpcError, null));
+    const service = new AccountService(client);
+
+    await expectAsync(firstValueFrom(service.listAccounts())).toBeRejectedWith(rpcError);
   });
 });

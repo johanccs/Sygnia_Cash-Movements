@@ -1,7 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GetStatementPageInput, MovementService, StatementPageDto } from '../services/movement.service';
 import { StatementPreviewComponent } from './statement-preview/statement-preview.component';
+import { AccountDto, AccountService } from '../services/account.service';
 
 const PAGE_SIZE = 25;
 
@@ -12,11 +13,19 @@ const PAGE_SIZE = 25;
   templateUrl: './statement.component.html',
   styleUrl: './statement.component.scss',
 })
-export class StatementComponent {
+export class StatementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly movementService = inject(MovementService);
+  private readonly accountService = inject(AccountService);
 
   readonly pageSize = PAGE_SIZE;
+  accounts: AccountDto[] = [];
+
+  ngOnInit(): void {
+    this.accountService.listAccounts().subscribe(accounts => {
+      this.accounts = accounts;
+    });
+  }
 
   readonly form = this.fb.nonNullable.group({
     accountId: ['', Validators.required],

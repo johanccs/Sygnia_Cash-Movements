@@ -4,11 +4,13 @@ import { of, throwError } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { StatementComponent } from './statement.component';
 import { GetStatementPageInput, MovementService, StatementPageDto } from '../services/movement.service';
+import { AccountService } from '../services/account.service';
 
 describe('StatementComponent', () => {
   let fixture: ComponentFixture<StatementComponent>;
   let component: StatementComponent;
   let movementServiceSpy: jasmine.SpyObj<MovementService>;
+  let accountServiceSpy: jasmine.SpyObj<AccountService>;
 
   const page: StatementPageDto = {
     lines: [
@@ -33,10 +35,15 @@ describe('StatementComponent', () => {
   beforeEach(async () => {
     movementServiceSpy = jasmine.createSpyObj('MovementService', ['getStatementPage']);
     movementServiceSpy.getStatementPage.and.returnValue(of(page));
+    accountServiceSpy = jasmine.createSpyObj('AccountService', ['listAccounts']);
+    accountServiceSpy.listAccounts.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [StatementComponent, ReactiveFormsModule],
-      providers: [{ provide: MovementService, useValue: movementServiceSpy }],
+      providers: [
+        { provide: MovementService, useValue: movementServiceSpy },
+        { provide: AccountService, useValue: accountServiceSpy },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(StatementComponent);

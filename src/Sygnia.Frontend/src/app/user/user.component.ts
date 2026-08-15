@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   BalanceDto,
@@ -6,6 +6,8 @@ import {
   MovementService,
   TransferResultDto,
 } from '../services/movement.service';
+import { AccountDto, AccountService } from '../services/account.service';
+import { MAJOR_CURRENCIES } from '../shared/currencies';
 
 type Tab = 'submit' | 'transfer' | 'balance';
 
@@ -20,11 +22,21 @@ type Tab = 'submit' | 'transfer' | 'balance';
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
 })
-export class UserComponent {
+export class UserComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly movementService = inject(MovementService);
+  private readonly accountService = inject(AccountService);
+
+  readonly currencies = MAJOR_CURRENCIES;
+  accounts: AccountDto[] = [];
 
   activeTab: Tab = 'submit';
+
+  ngOnInit(): void {
+    this.accountService.listAccounts().subscribe(accounts => {
+      this.accounts = accounts;
+    });
+  }
 
   setActiveTab(tab: Tab): void {
     this.activeTab = tab;

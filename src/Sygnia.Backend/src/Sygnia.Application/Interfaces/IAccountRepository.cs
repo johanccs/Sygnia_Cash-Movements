@@ -18,4 +18,7 @@ public interface IAccountRepository
     /// <c>account.already_exists</c> rather than an exception.
     /// </summary>
     Task<Result<Account>> CreateAsync(Account account, CancellationToken cancellationToken);
+
+    /// <summary>Returns every account, ordered by <see cref="Account.AccountId"/>.</summary>
+    Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken);
 }

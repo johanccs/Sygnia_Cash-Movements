@@ -125,5 +125,48 @@ export class AccountServiceClient {
     this.methodDescriptorGetAccount);
   }
 
+  methodDescriptorListAccounts = new grpcWeb.MethodDescriptor(
+    '/accounts.AccountService/ListAccounts',
+    grpcWeb.MethodType.UNARY,
+    accounts_pb.ListAccountsRequest,
+    accounts_pb.ListAccountsResponse,
+    (request: accounts_pb.ListAccountsRequest) => {
+      return request.serializeBinary();
+    },
+    accounts_pb.ListAccountsResponse.deserializeBinary
+  );
+
+  listAccounts(
+    request: accounts_pb.ListAccountsRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<accounts_pb.ListAccountsResponse>;
+
+  listAccounts(
+    request: accounts_pb.ListAccountsRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: accounts_pb.ListAccountsResponse) => void): grpcWeb.ClientReadableStream<accounts_pb.ListAccountsResponse>;
+
+  listAccounts(
+    request: accounts_pb.ListAccountsRequest,
+    metadata?: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: accounts_pb.ListAccountsResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/accounts.AccountService/ListAccounts',
+        request,
+        metadata || {},
+        this.methodDescriptorListAccounts,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/accounts.AccountService/ListAccounts',
+    request,
+    metadata || {},
+    this.methodDescriptorListAccounts);
+  }
+
 }
 

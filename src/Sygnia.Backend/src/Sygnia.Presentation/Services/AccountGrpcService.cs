@@ -2,6 +2,7 @@ using Grpc.Core;
 using MediatR;
 using Sygnia.Application.Commands.CreateAccount;
 using Sygnia.Application.Queries.GetAccount;
+using Sygnia.Application.Queries.ListAccounts;
 using Sygnia.Presentation.Mapping;
 
 namespace Sygnia.Presentation.Services;
@@ -30,5 +31,13 @@ internal sealed class AccountGrpcService(IMediator mediator) : AccountService.Ac
     {
         var result = await mediator.Send(new GetAccountQuery(request.AccountId), context.CancellationToken);
         return result.IsSuccess ? result.Value.ToProto() : throw result.Error.ToRpcException();
+    }
+
+    public override async Task<ListAccountsResponse> ListAccounts(ListAccountsRequest request, ServerCallContext context)
+    {
+        var accounts = await mediator.Send(new ListAccountsQuery(), context.CancellationToken);
+        var response = new ListAccountsResponse();
+        response.Accounts.AddRange(accounts.Select(a => a.ToProto()));
+        return response;
     }
 }

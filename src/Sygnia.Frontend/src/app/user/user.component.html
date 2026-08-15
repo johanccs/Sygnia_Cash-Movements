@@ -1,4 +1,4 @@
-<div class="container py-5">
+<div class="container pt-2 pb-5">
   <h1 class="display-6 fw-bold mb-4">User Actions</h1>
 
   <ul class="nav nav-tabs mb-4" role="tablist">
@@ -12,7 +12,7 @@
         Submit Movement
       </button>
     </li>
-    <li class="nav-item" role="presentation">
+    <li class="nav-item d-none" role="presentation">
       <button
         type="button"
         class="nav-link"
@@ -39,47 +39,57 @@
       <form [formGroup]="submitForm" (ngSubmit)="onSubmitMovement()" class="col-md-6">
         <div class="mb-3">
           <label for="submitAccountId" class="form-label">Account Id</label>
-          <input id="submitAccountId" type="text" class="form-control" formControlName="accountId" />
+          <select id="submitAccountId" class="form-select form-select-sm" formControlName="accountId">
+            <option value="" disabled>Select account</option>
+            @for (account of accounts; track account.accountId) {
+              <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="submitExternalRef" class="form-label">External Ref</label>
-          <input id="submitExternalRef" type="text" class="form-control" formControlName="externalRef" />
+          <input id="submitExternalRef" type="text" class="form-control form-control-sm" formControlName="externalRef" />
         </div>
 
         <div class="mb-3">
           <label for="submitCurrency" class="form-label">Currency</label>
-          <input id="submitCurrency" type="text" class="form-control" formControlName="currency" maxlength="3" minlength="3" />
+          <select id="submitCurrency" class="form-select form-select-sm" formControlName="currency">
+            <option value="" disabled>Select currency</option>
+            @for (currency of currencies; track currency) {
+              <option [value]="currency">{{ currency }}</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="submitAmount" class="form-label">Amount</label>
-          <input id="submitAmount" type="text" class="form-control" formControlName="amount" />
+          <input id="submitAmount" type="text" class="form-control form-control-sm" formControlName="amount" />
         </div>
 
         <div class="mb-3">
           <label for="submitOccurredAt" class="form-label">Occurred At</label>
-          <input id="submitOccurredAt" type="date" class="form-control" formControlName="occurredAt" />
+          <input id="submitOccurredAt" type="date" class="form-control form-control-sm" formControlName="occurredAt" />
         </div>
 
         <div class="mb-3">
           <label for="submitNarration" class="form-label">Narration</label>
-          <input id="submitNarration" type="text" class="form-control" formControlName="narration" />
+          <input id="submitNarration" type="text" class="form-control form-control-sm" formControlName="narration" />
         </div>
 
         <div class="mb-3">
           <label for="submitRefNr" class="form-label">Ref Nr</label>
-          <input id="submitRefNr" type="text" class="form-control" formControlName="refNr" />
+          <input id="submitRefNr" type="text" class="form-control form-control-sm" formControlName="refNr" />
         </div>
 
         <div class="mb-3">
           <label for="submitMovedBy" class="form-label">Moved By</label>
-          <input id="submitMovedBy" type="text" class="form-control" formControlName="movedBy" />
+          <input id="submitMovedBy" type="text" class="form-control form-control-sm" formControlName="movedBy" />
         </div>
 
         <div class="mb-3">
           <label for="submitMovedDate" class="form-label">Moved Date</label>
-          <input id="submitMovedDate" type="date" class="form-control" formControlName="movedDate" />
+          <input id="submitMovedDate" type="date" class="form-control form-control-sm" formControlName="movedDate" />
         </div>
 
         <button type="submit" class="btn btn-primary" [disabled]="submitForm.invalid">Submit Movement</button>
@@ -104,52 +114,67 @@
       <form [formGroup]="transferForm" (ngSubmit)="onTransfer()" class="col-md-6">
         <div class="mb-3">
           <label for="transferFromAccountId" class="form-label">From Account Id</label>
-          <input id="transferFromAccountId" type="text" class="form-control" formControlName="fromAccountId" />
+          <select id="transferFromAccountId" class="form-select form-select-sm" formControlName="fromAccountId">
+            <option value="" disabled>Select account</option>
+            @for (account of accounts; track account.accountId) {
+              <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="transferToAccountId" class="form-label">To Account Id</label>
-          <input id="transferToAccountId" type="text" class="form-control" formControlName="toAccountId" />
+          <select id="transferToAccountId" class="form-select form-select-sm" formControlName="toAccountId">
+            <option value="" disabled>Select account</option>
+            @for (account of accounts; track account.accountId) {
+              <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="transferExternalRef" class="form-label">External Ref</label>
-          <input id="transferExternalRef" type="text" class="form-control" formControlName="externalRef" />
+          <input id="transferExternalRef" type="text" class="form-control form-control-sm" formControlName="externalRef" />
         </div>
 
         <div class="mb-3">
           <label for="transferCurrency" class="form-label">Currency</label>
-          <input id="transferCurrency" type="text" class="form-control" formControlName="currency" maxlength="3" minlength="3" />
+          <select id="transferCurrency" class="form-select form-select-sm" formControlName="currency">
+            <option value="" disabled>Select currency</option>
+            @for (currency of currencies; track currency) {
+              <option [value]="currency">{{ currency }}</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="transferAmount" class="form-label">Amount</label>
-          <input id="transferAmount" type="text" class="form-control" formControlName="amount" />
+          <input id="transferAmount" type="text" class="form-control form-control-sm" formControlName="amount" />
         </div>
 
         <div class="mb-3">
           <label for="transferOccurredAt" class="form-label">Occurred At</label>
-          <input id="transferOccurredAt" type="date" class="form-control" formControlName="occurredAt" />
+          <input id="transferOccurredAt" type="date" class="form-control form-control-sm" formControlName="occurredAt" />
         </div>
 
         <div class="mb-3">
           <label for="transferNarration" class="form-label">Narration</label>
-          <input id="transferNarration" type="text" class="form-control" formControlName="narration" />
+          <input id="transferNarration" type="text" class="form-control form-control-sm" formControlName="narration" />
         </div>
 
         <div class="mb-3">
           <label for="transferRefNr" class="form-label">Ref Nr</label>
-          <input id="transferRefNr" type="text" class="form-control" formControlName="refNr" />
+          <input id="transferRefNr" type="text" class="form-control form-control-sm" formControlName="refNr" />
         </div>
 
         <div class="mb-3">
           <label for="transferMovedBy" class="form-label">Moved By</label>
-          <input id="transferMovedBy" type="text" class="form-control" formControlName="movedBy" />
+          <input id="transferMovedBy" type="text" class="form-control form-control-sm" formControlName="movedBy" />
         </div>
 
         <div class="mb-3">
           <label for="transferMovedDate" class="form-label">Moved Date</label>
-          <input id="transferMovedDate" type="date" class="form-control" formControlName="movedDate" />
+          <input id="transferMovedDate" type="date" class="form-control form-control-sm" formControlName="movedDate" />
         </div>
 
         <button type="submit" class="btn btn-primary" [disabled]="transferForm.invalid">Transfer</button>
@@ -174,7 +199,12 @@
       <form [formGroup]="balanceForm" (ngSubmit)="onCheckBalance()" class="col-md-6">
         <div class="mb-3">
           <label for="balanceAccountId" class="form-label">Account Id</label>
-          <input id="balanceAccountId" type="text" class="form-control" formControlName="accountId" />
+          <select id="balanceAccountId" class="form-select form-select-sm" formControlName="accountId">
+            <option value="" disabled>Select account</option>
+            @for (account of accounts; track account.accountId) {
+              <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+            }
+          </select>
         </div>
 
         <button type="submit" class="btn btn-primary" [disabled]="balanceForm.invalid">Check Balance</button>

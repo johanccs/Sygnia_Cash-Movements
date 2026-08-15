@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AccountServiceClient } from '../grpc/AccountsServiceClientPb';
-import { Account, CreateAccountRequest, GetAccountRequest } from '../grpc/accounts_pb';
+import { Account, CreateAccountRequest, GetAccountRequest, ListAccountsRequest } from '../grpc/accounts_pb';
 import { environment } from '../../environments/environment';
 
 /** Plain DTO mirroring the wire Account message, with Timestamps converted to JS Dates. */
@@ -69,6 +69,19 @@ export class AccountService {
           return;
         }
         observer.next(mapAccount(res));
+        observer.complete();
+      });
+    });
+  }
+
+  listAccounts(): Observable<AccountDto[]> {
+    return new Observable(observer => {
+      this.client.listAccounts(new ListAccountsRequest(), {}, (err, res) => {
+        if (err) {
+          observer.error(err);
+          return;
+        }
+        observer.next(res.getAccountsList().map(mapAccount));
         observer.complete();
       });
     });

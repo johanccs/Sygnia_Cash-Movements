@@ -6,6 +6,7 @@ package accounts;
 service AccountService {
   rpc CreateAccount(CreateAccountRequest) returns (Account);
   rpc GetAccount(GetAccountRequest) returns (Account);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
 }
 
 message Account {
@@ -27,4 +28,11 @@ message CreateAccountRequest {
 
 message GetAccountRequest {
   string account_id = 1;
+}
+
+message ListAccountsRequest {
+}
+
+message ListAccountsResponse {
+  repeated Account accounts = 1;
 }

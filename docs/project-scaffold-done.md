@@ -31,3 +31,14 @@
     - as a ci/cd pipeline - only include build stage for both client and backend
     - separate the backend and client build into 2 files.
 10. Ensure all services, database access and grpc access contains async/await asyncronousity 
+11. Setup a loop with max loop couter of 3. for each iteration:
+    - investigate the code quality of backend and client
+    - make suggestions
+    - wait untill suggestion is approved
+    - create new branch, implement fix and wait for approval
+    - once approved, commit change and merge with main
+
+** Modifications
+12. The movement -> there is a move from account but no move to account.
+13. The account should belong to a customer who should be to add more accounts to the same customer
+    - customer -> accounts : one accout to many accounts

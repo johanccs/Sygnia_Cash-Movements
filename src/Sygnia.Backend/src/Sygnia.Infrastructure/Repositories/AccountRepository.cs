@@ -39,4 +39,14 @@ internal sealed class AccountRepository(SygniaDbContext db) : IAccountRepository
                 $"Account '{account.AccountId}' already exists."));
         }
     }
+
+    public async Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken)
+    {
+        var entities = await db.Accounts
+            .AsNoTracking()
+            .OrderBy(a => a.AccountId)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(e => e.ToDomain()).ToList();
+    }
 }

@@ -80,4 +80,26 @@ public sealed class AccountGrpcServiceTests
 
         Assert.Equal(StatusCode.NotFound, ex.StatusCode);
     }
+
+    [Fact]
+    public async Task ListAccounts_MultipleAccounts_ReturnsAllAccountProtos()
+    {
+        var (service, repository) = CreateSut();
+        repository.AddExisting("ACC-002");
+        repository.AddExisting("ACC-001");
+
+        var response = await service.ListAccounts(new ListAccountsRequest(), TestServerCallContext.Create());
+
+        Assert.Equal(["ACC-001", "ACC-002"], response.Accounts.Select(a => a.AccountId));
+    }
+
+    [Fact]
+    public async Task ListAccounts_NoAccounts_ReturnsEmpty()
+    {
+        var (service, _) = CreateSut();
+
+        var response = await service.ListAccounts(new ListAccountsRequest(), TestServerCallContext.Create());
+
+        Assert.Empty(response.Accounts);
+    }
 }

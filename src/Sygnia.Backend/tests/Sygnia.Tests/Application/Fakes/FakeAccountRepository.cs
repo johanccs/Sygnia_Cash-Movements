@@ -26,4 +26,7 @@ public sealed class FakeAccountRepository : IAccountRepository
 
         return Task.FromResult(Result<Account>.Success(account));
     }
+
+    public Task<IReadOnlyList<Account>> ListAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<Account>>(_stored.Values.OrderBy(a => a.AccountId).ToList());
 }

@@ -3,9 +3,11 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { UserComponent } from './user.component';
 import { MovementDto, MovementService } from '../services/movement.service';
+import { AccountService } from '../services/account.service';
 
 describe('UserComponent', () => {
   let movementServiceSpy: jasmine.SpyObj<MovementService>;
+  let accountServiceSpy: jasmine.SpyObj<AccountService>;
 
   beforeEach(async () => {
     movementServiceSpy = jasmine.createSpyObj('MovementService', [
@@ -13,10 +15,15 @@ describe('UserComponent', () => {
       'transfer',
       'getBalance',
     ]);
+    accountServiceSpy = jasmine.createSpyObj('AccountService', ['listAccounts']);
+    accountServiceSpy.listAccounts.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [UserComponent, ReactiveFormsModule],
-      providers: [{ provide: MovementService, useValue: movementServiceSpy }],
+      providers: [
+        { provide: MovementService, useValue: movementServiceSpy },
+        { provide: AccountService, useValue: accountServiceSpy },
+      ],
     }).compileComponents();
   });
 
