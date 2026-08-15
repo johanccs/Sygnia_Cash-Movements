@@ -8,6 +8,10 @@ namespace Sygnia.Wcf.Gateway
     // The gRPC call is expressed as a delegate rather than the concrete generated client so
     // this class stays trivially testable from the net8.0 Sygnia.Tests project without a real
     // channel: Func<accountId, (accountId, balance)>.
+    // ServiceHost is constructed with a singleton instance (Program.cs passes `balanceService`
+    // directly, needed because it closes over the gRPC client delegate), which WCF requires to
+    // be declared explicitly via InstanceContextMode.Single — otherwise ServiceHost.Open() throws.
+    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single)]
     public class BalanceService : IBalanceService
     {
         private readonly Func<string, (string AccountId, string Balance)> getBalance;
