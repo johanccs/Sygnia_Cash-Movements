@@ -22,6 +22,37 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 
 Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
 
+## gRPC-Web client codegen
+
+The `.proto` files in `proto/` are copied verbatim from `Sygnia.Backend/src/Sygnia.Presentation/Protos/`
+(the backend is the source of truth — never hand-edit the copies here). Generated TypeScript/JS client
+stubs live in `src/app/grpc/` and are checked into source control, so a normal `npm ci && npm start`
+works without anyone needing `protoc` installed.
+
+To regenerate the stubs after a proto file changes:
+
+```bash
+npm install
+npm run gen:proto
+```
+
+`npm install` pulls in everything codegen needs:
+- `grpc-tools` (devDependency) bundles a `protoc.exe` binary. **This is pinned to exactly `1.11.0`** —
+  newer `grpc-tools` releases (1.12.x, 1.13.x) ship a Windows `protoc.exe` that requires
+  `ucrtbased.dll` (the Visual Studio *Debug* Universal CRT), which is not present on a normal
+  dev machine and makes `protoc.exe` fail to start with `STATUS_DLL_NOT_FOUND`. `1.11.0` ships a
+  correctly built release binary. If you ever bump this version, verify `protoc.exe --version`
+  actually runs on Windows before relying on it.
+- `protoc-gen-grpc-web` (devDependency, the `protoc-gen-grpc-web-npm` package) downloads the
+  official `protoc-gen-grpc-web` plugin binary for your platform as a postinstall step. This is
+  the plugin that turns protobuf definitions into gRPC-Web client stubs; it's a separate binary
+  from `protoc` itself and is not bundled by `grpc-tools`.
+
+`npm run gen:proto` runs `scripts/gen-proto.ps1`, which invokes `protoc.exe` directly (via
+`grpc-tools`) with the `protoc-gen-grpc-web` plugin, producing for each proto file:
+- `*_pb.js` + `*_pb.d.ts` — protobuf message classes (from `google-protobuf`'s `js_out`)
+- `*ServiceClientPb.ts` — the gRPC-Web client stub (from `grpc-web`'s `grpc-web_out`)
+
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
