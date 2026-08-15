@@ -18,9 +18,16 @@ namespace Sygnia.Wcf.Gateway
 
         public void ProvideFault(Exception error, MessageVersion version, ref System.ServiceModel.Channels.Message fault)
         {
-            var faultException = new System.ServiceModel.FaultException<BalanceFault>(
-                new BalanceFault { Message = "An unexpected error occurred." },
-                new System.ServiceModel.FaultReason("An unexpected error occurred."));
+            // A FaultException<BalanceFault> already carries the deliberate, correctly-mapped
+            // detail (e.g. "Unknown account 'ACC-999'.") thrown by BalanceService itself — pass
+            // it through unchanged. Only truly unexpected exceptions get genericized here, so
+            // internals never leak onto the wire (CLAUDE.md: "Details go to the log, never to
+            // the wire").
+            var faultException = error is System.ServiceModel.FaultException<BalanceFault> knownFault
+                ? knownFault
+                : new System.ServiceModel.FaultException<BalanceFault>(
+                    new BalanceFault { Message = "An unexpected error occurred." },
+                    new System.ServiceModel.FaultReason("An unexpected error occurred."));
 
             var faultMessageFault = faultException.CreateMessageFault();
             fault = System.ServiceModel.Channels.Message.CreateMessage(version, faultMessageFault, faultException.Action);
