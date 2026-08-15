@@ -40,6 +40,10 @@
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
+            ],
+            "allowedCommonJsDependencies": [
+              "google-protobuf",
+              "grpc-web"
             ]
           },
           "configurations": {
@@ -68,6 +72,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": ["google-protobuf", "google-protobuf/google/protobuf/timestamp_pb.js"]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "Sygnia.Frontend:build:production"
