@@ -24,7 +24,9 @@
       "Bash(mv Sygnia.UnitTests Sygnia.Tests)",
       "Bash(mv Sygnia.Tests/Sygnia.UnitTests.csproj Sygnia.Tests/Sygnia.Tests.csproj)",
       "Bash(rm -f Sygnia.Backend.sln)",
-      "Bash(rm -rf src/*/bin src/*/obj tests/*/bin tests/*/obj)"
+      "Bash(rm -rf src/*/bin src/*/obj tests/*/bin tests/*/obj)",
+      "Bash(rmdir Interfaces)",
+      "Bash(mv Ports Interfaces)"
     ]
   }
 }

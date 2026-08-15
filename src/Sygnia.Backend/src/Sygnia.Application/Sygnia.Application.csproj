@@ -6,4 +6,16 @@
     <ProjectReference Include="..\Sygnia.Domain\Sygnia.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Handlers/validators are internal sealed; tests reach them through this. -->
+    <InternalsVisibleTo Include="Sygnia.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
 </Project>

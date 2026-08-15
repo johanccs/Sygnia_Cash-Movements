@@ -26,4 +26,14 @@ not double-count. - Should account for idempotency and handled in Sygnia.Applica
 ** Instructions
 0. Read the original first-draft.md and ensure business rules are still in sync.
 1. Implement business rules by using mediatr library
-    - Create folders for the commands
+    - Create folders for the commands and commandhandlers
+    - Create folders for the query and queryhandlers
+    - Use records for commands and queries
+    - Use private, sealed classes as the handlers
+2. Create the classes using TDD.
+3. Add TODO comments where we will inject a dbcontext from ef core (still to be created).
+4. Implement: 
+    - fluentvalidation
+    - logging in mediatr pipeline
+5. Add a AppModuleExtensions static class with a Register extension method for IServiceProvider services if there are any DI registration needed.
+6. For constructors - use primary ctor

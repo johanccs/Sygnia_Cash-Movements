@@ -17,6 +17,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sygnia.Domain\Sygnia.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Sygnia.Application\Sygnia.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" />
   </ItemGroup>
 
   <ItemGroup>

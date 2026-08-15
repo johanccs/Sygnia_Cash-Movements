@@ -35,7 +35,8 @@ docker compose up -d                                  # SQL Server + Seq + Jaege
 `planning.md` lists more than the brief asks for, and the scope has been narrowed to the following. Do not add anything from the Out list without being asked:
 
 - **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`Sygnia.Frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
-- **Out:** Redis, Swagger, MediatR and its pipeline behaviours, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
+- **Out:** Redis, Swagger, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
+- **Opt-in:** MediatR and its pipeline behaviours — out at the root scope, but a project's own nested `CLAUDE.md` may opt back in for itself (as `Sygnia.Application`'s does). A nested opt-in overrides this section for that project only, per the document-precedence rule above; record the opt-in and its reasoning in `SOLUTION.md`.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
 
 The front end was originally out of scope and the scaffold step (`planning/one_project-scaffold-done.md`) put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
