@@ -22,6 +22,8 @@
     "bootstrap": "^5.3.8",
     "google-protobuf": "^4.0.2",
     "grpc-web": "^2.0.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
