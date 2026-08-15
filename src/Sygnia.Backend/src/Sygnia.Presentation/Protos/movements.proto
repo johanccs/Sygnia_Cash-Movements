@@ -12,6 +12,7 @@ service MovementService {
   rpc Transfer(TransferRequest) returns (TransferResponse);
   rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
   rpc GetStatement(GetStatementRequest) returns (stream StatementLine);
+  rpc GetStatementPage(GetStatementPageRequest) returns (GetStatementPageResponse);
 }
 
 // Amount crosses the wire as a string decimal ("12500.00"), never a double — protobuf has no
@@ -78,4 +79,17 @@ message GetStatementRequest {
 message StatementLine {
   Movement movement = 1;
   string running_total = 2;
+}
+
+message GetStatementPageRequest {
+  string account_id = 1;
+  google.protobuf.Timestamp from = 2;
+  google.protobuf.Timestamp to = 3;
+  int32 page_number = 4;
+  int32 page_size = 5;
+}
+
+message GetStatementPageResponse {
+  repeated StatementLine lines = 1;
+  int32 total_count = 2;
 }

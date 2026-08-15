@@ -98,4 +98,39 @@ public sealed class StatementReaderTests(SqlServerFixture fixture)
         Assert.Equal(rowCount, count);
         Assert.Equal(rowCount * 1.00m, runningTotal);
     }
+
+    [Fact]
+    public async Task GetPageAsync_ThreeMovements_PageSizeTwo_ReturnsPageAndTotalCount()
+    {
+        var accountId = $"ACC-{Guid.NewGuid():N}"[..10];
+        await fixture.SeedAccountAsync(accountId);
+        await using (var db = fixture.CreateContext())
+        {
+            db.Movements.AddRange(
+                new Sygnia.Infrastructure.Entities.MovementEntity
+                {
+                    AccountId = accountId, ExternalRef = "MOV-PAGE-01", Currency = "ZAR",
+                    Amount = 100m, OccurredAt = Day1, RefNr = Guid.NewGuid(), MovedBy = "jsmith", MovedDate = Day1,
+                },
+                new Sygnia.Infrastructure.Entities.MovementEntity
+                {
+                    AccountId = accountId, ExternalRef = "MOV-PAGE-02", Currency = "ZAR",
+                    Amount = 200m, OccurredAt = Day1.AddMinutes(1), RefNr = Guid.NewGuid(), MovedBy = "jsmith", MovedDate = Day1,
+                },
+                new Sygnia.Infrastructure.Entities.MovementEntity
+                {
+                    AccountId = accountId, ExternalRef = "MOV-PAGE-03", Currency = "ZAR",
+                    Amount = 300m, OccurredAt = Day1.AddMinutes(2), RefNr = Guid.NewGuid(), MovedBy = "jsmith", MovedDate = Day1,
+                });
+            await db.SaveChangesAsync();
+        }
+
+        var reader = new StatementReader(fixture.CreateContext());
+        var (rows, totalCount) = await reader.GetPageAsync(accountId, Day1, Day1.AddDays(1), pageNumber: 1, pageSize: 2, CancellationToken.None);
+
+        Assert.Equal(3, totalCount);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("MOV-PAGE-01", rows[0].ExternalRef);
+        Assert.Equal("MOV-PAGE-02", rows[1].ExternalRef);
+    }
 }

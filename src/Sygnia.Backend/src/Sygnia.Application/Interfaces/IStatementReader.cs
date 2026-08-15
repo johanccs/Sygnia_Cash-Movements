@@ -18,4 +18,11 @@ public interface IStatementReader
         DateTime from,
         DateTime to,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// A single page for the UI's paginated table — buffered on purpose, unlike
+    /// <see cref="StreamAsync"/>'s full stream. Never used for the 50k-row memory test.
+    /// </summary>
+    Task<(IReadOnlyList<Movement> Rows, int TotalCount)> GetPageAsync(
+        string accountId, DateTime from, DateTime to, int pageNumber, int pageSize, CancellationToken cancellationToken);
 }

@@ -27,4 +27,20 @@ public sealed class FakeStatementReader : IStatementReader
             await Task.Yield();
         }
     }
+
+    public Task<(IReadOnlyList<Movement> Rows, int TotalCount)> GetPageAsync(
+        string accountId, DateTime from, DateTime to, int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        var matching = Movements
+            .Where(m => m.AccountId == accountId && m.OccurredAt >= from && m.OccurredAt <= to)
+            .OrderBy(m => m.OccurredAt)
+            .ToList();
+
+        var rows = matching
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult<(IReadOnlyList<Movement> Rows, int TotalCount)>((rows, matching.Count));
+    }
 }
