@@ -1,2 +1,4 @@
 ** Instruction
 1. Create needed protobuf files to send a request from the presentation layer to the database. Use Postman to test (gRPC — Swagger/OpenAPI doesn't apply; it's a REST-only tool with no visibility into a binary gRPC service without a separate REST/gRPC gateway, which is out of scope).
+
+2. For mapping - do not use automapper

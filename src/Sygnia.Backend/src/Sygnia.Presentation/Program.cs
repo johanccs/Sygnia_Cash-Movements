@@ -3,6 +3,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Sygnia.Application;
 using Sygnia.Infrastructure;
+using Sygnia.Presentation;
 using Sygnia.Presentation.Services;
 
 const string ServiceName = "Sygnia.Presentation";
@@ -28,7 +29,7 @@ builder.Services.AddOpenTelemetry()
             new Uri(builder.Configuration["Otlp:Endpoint"] ?? "http://localhost:4317")));
 
 // Add services to the container.
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options => options.Interceptors.Add<ErrorInterceptor>());
 builder.Services.Register(); // Sygnia.Application: MediatR, validators, logging pipeline
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("SygniaCash")
@@ -39,6 +40,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseSerilogRequestLogging();
 app.MapGrpcService<GreeterService>();
+app.MapGrpcService<MovementGrpcService>();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 try

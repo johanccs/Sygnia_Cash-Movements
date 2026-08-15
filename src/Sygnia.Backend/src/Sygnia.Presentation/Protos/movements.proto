@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Sygnia.Presentation";
+
+package movements;
+
+// Submit / transfer / balance / streaming statement, per the root CLAUDE.md.
+service MovementService {
+  rpc SubmitMovement(SubmitMovementRequest) returns (Movement);
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
+  rpc GetStatement(GetStatementRequest) returns (stream StatementLine);
+}
+
+// Amount crosses the wire as a string decimal ("12500.00"), never a double — protobuf has no
+// decimal type and double corrupts cents. Positive is a deposit, negative a withdrawal.
+message Movement {
+  string account_id = 1;
+  string external_ref = 2;
+  string currency = 3;
+  string amount = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string narration = 6;
+  string ref_nr = 7;
+  string moved_by = 8;
+  google.protobuf.Timestamp moved_date = 9;
+}
+
+message SubmitMovementRequest {
+  string account_id = 1;
+  string external_ref = 2;
+  string currency = 3;
+  string amount = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string narration = 6;
+  string ref_nr = 7;
+  string moved_by = 8;
+  google.protobuf.Timestamp moved_date = 9;
+}
+
+message TransferRequest {
+  string from_account_id = 1;
+  string to_account_id = 2;
+  string external_ref = 3;
+  string currency = 4;
+  string amount = 5;
+  google.protobuf.Timestamp occurred_at = 6;
+  string narration = 7;
+  string ref_nr = 8;
+  string moved_by = 9;
+  google.protobuf.Timestamp moved_date = 10;
+}
+
+message TransferResponse {
+  Movement debit = 1;
+  Movement credit = 2;
+}
+
+message GetBalanceRequest {
+  string account_id = 1;
+}
+
+message GetBalanceResponse {
+  string account_id = 1;
+  string balance = 2;
+}
+
+message GetStatementRequest {
+  string account_id = 1;
+  google.protobuf.Timestamp from = 2;
+  google.protobuf.Timestamp to = 3;
+}
+
+// One streamed line. running_total is precomputed by the handler as it streams, so the
+// client never has to accumulate it itself.
+message StatementLine {
+  Movement movement = 1;
+  string running_total = 2;
+}
