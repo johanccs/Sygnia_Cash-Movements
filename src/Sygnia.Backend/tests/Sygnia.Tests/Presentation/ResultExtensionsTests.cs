@@ -9,6 +9,7 @@ public sealed class ResultExtensionsTests
     [Theory]
     [InlineData("account.not_found", StatusCode.NotFound)]
     [InlineData("movement.already_exists", StatusCode.AlreadyExists)]
+    [InlineData("account.already_exists", StatusCode.AlreadyExists)]
     [InlineData("movement.invalid", StatusCode.InvalidArgument)]
     [InlineData("transfer.invalid", StatusCode.InvalidArgument)]
     [InlineData("balance.invalid", StatusCode.InvalidArgument)]
