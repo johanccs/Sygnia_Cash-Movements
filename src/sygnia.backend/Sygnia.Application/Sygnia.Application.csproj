@@ -3,7 +3,7 @@
   <!-- Build properties are centralised in ..\Directory.Build.props -->
 
   <ItemGroup>
-    <ProjectReference Include="..\sygnia.application\sygnia.application.csproj" />
+    <ProjectReference Include="..\Sygnia.Domain\Sygnia.Domain.csproj" />
   </ItemGroup>
 
 </Project>

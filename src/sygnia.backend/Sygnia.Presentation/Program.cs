@@ -1,4 +1,4 @@
-using sygnia.presentation.Services;
+using Sygnia.Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

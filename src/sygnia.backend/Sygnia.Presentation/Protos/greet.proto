@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "sygnia.presentation";
+option csharp_namespace = "Sygnia.Presentation";
 
 package greet;
 

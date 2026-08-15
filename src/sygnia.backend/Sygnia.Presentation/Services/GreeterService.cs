@@ -1,7 +1,7 @@
 using Grpc.Core;
-using sygnia.presentation;
+using Sygnia.Presentation;
 
-namespace sygnia.presentation.Services;
+namespace Sygnia.Presentation.Services;
 
 public class GreeterService : Greeter.GreeterBase
 {

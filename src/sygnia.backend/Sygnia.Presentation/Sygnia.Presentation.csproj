@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\sygnia.application\sygnia.application.csproj" />
-    <ProjectReference Include="..\sygnia.infrastructure\sygnia.infrastructure.csproj" />
+    <ProjectReference Include="..\Sygnia.Application\Sygnia.Application.csproj" />
+    <ProjectReference Include="..\Sygnia.Infrastructure\Sygnia.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
