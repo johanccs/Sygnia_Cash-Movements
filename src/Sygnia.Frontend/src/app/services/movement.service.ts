@@ -111,11 +111,12 @@ function mapStatementLine(line: StatementLine): StatementLineDto {
   };
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+  useFactory: () => new MovementService(new MovementServiceClient('http://localhost:5000')),
+})
 export class MovementService {
-  constructor(
-    private readonly client: MovementServiceClient = new MovementServiceClient('http://localhost:5000')
-  ) {}
+  constructor(private readonly client: MovementServiceClient) {}
 
   submitMovement(input: SubmitMovementInput): Observable<MovementDto | null> {
     return new Observable(observer => {

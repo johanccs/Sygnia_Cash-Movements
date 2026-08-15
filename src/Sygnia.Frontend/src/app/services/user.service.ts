@@ -24,11 +24,12 @@ function mapUser(user: User): UserDto {
   };
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+  useFactory: () => new UserService(new UserServiceClient('http://localhost:5000')),
+})
 export class UserService {
-  constructor(
-    private readonly client: UserServiceClient = new UserServiceClient('http://localhost:5000')
-  ) {}
+  constructor(private readonly client: UserServiceClient) {}
 
   createUser(input: CreateUserInput): Observable<UserDto> {
     return new Observable(observer => {

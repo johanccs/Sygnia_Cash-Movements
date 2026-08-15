@@ -32,11 +32,12 @@ function mapAccount(account: Account): AccountDto {
   };
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+  useFactory: () => new AccountService(new AccountServiceClient('http://localhost:5000')),
+})
 export class AccountService {
-  constructor(
-    private readonly client: AccountServiceClient = new AccountServiceClient('http://localhost:5000')
-  ) {}
+  constructor(private readonly client: AccountServiceClient) {}
 
   createAccount(input: CreateAccountInput): Observable<AccountDto> {
     return new Observable(observer => {
