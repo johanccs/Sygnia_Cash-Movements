@@ -70,6 +70,22 @@ dotnet run --project src/Sygnia.Presentation
 Listens on `http://localhost:5058` (HTTP/2, gRPC + gRPC-Web) and `https://localhost:7110`.
 Traces flow to Jaeger, structured logs to Seq and the console.
 
+### Run the WCF gateway (optional, Task 3)
+
+`Sygnia.Wcf.Gateway` is a minimal legacy NetTcp gateway exposing one `GetBalance` operation. It
+calls into the same backend as the gRPC API — by acting as a gRPC client itself — so both entry
+points return identical balances for identical data.
+
+With the gRPC host already running (see above), in a second terminal:
+
+```bash
+dotnet run --project src/Sygnia.Backend/src/Sygnia.Wcf.Gateway
+```
+
+It listens on `net.tcp://localhost:8090/BalanceService`. Both addresses (the gRPC host it calls,
+and the NetTcp address it listens on) are configurable in
+`src/Sygnia.Backend/src/Sygnia.Wcf.Gateway/App.config`.
+
 ### 5. Run the frontend (optional)
 
 ```bash
