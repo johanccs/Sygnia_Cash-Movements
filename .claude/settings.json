@@ -12,7 +12,9 @@
       "Bash(dotnet sln *)",
       "Bash(rm -rf */bin */obj)",
       "Bash(rm -rf dist)",
-      "Bash(npx ng *)"
+      "Bash(npx ng *)",
+      "Bash(mkdir -p tests)",
+      "Bash(rm -f tests/Sygnia.UnitTests/UnitTest1.cs)"
     ]
   }
 }

@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.Infrastructure", "Sy
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.Presentation", "Sygnia.Presentation\Sygnia.Presentation.csproj", "{89D5FC23-2F78-4602-9797-61B9C5024E60}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3CC5F389-DD77-4D2C-AE92-CAECB6C245A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.UnitTests", "tests\Sygnia.UnitTests\Sygnia.UnitTests.csproj", "{7D720EC7-F270-4938-A6DB-EAE6E099C726}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,12 @@ Global
 		{89D5FC23-2F78-4602-9797-61B9C5024E60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89D5FC23-2F78-4602-9797-61B9C5024E60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89D5FC23-2F78-4602-9797-61B9C5024E60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D720EC7-F270-4938-A6DB-EAE6E099C726}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D720EC7-F270-4938-A6DB-EAE6E099C726}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D720EC7-F270-4938-A6DB-EAE6E099C726}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D720EC7-F270-4938-A6DB-EAE6E099C726}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7D720EC7-F270-4938-A6DB-EAE6E099C726} = {3CC5F389-DD77-4D2C-AE92-CAECB6C245A2}
 	EndGlobalSection
 EndGlobal

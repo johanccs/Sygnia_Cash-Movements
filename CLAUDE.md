@@ -54,18 +54,21 @@ Clean Architecture, dependencies inward only. Each project exposes public interf
 src/
 ├─ Sygnia.Frontend/                Angular 18 SPA — gRPC-Web clients
 └─ Sygnia.Backend/                 .NET 8 solution
-    ├─ Sygnia.Domain/              no dependencies. Movement, Account, Result<T>, Error. AddDomain()
+    ├─ Sygnia.Domain/              no dependencies. Models/ (Movement, Account, User), Guard,
+    │                              Result<T>, Error. AddDomain()
     ├─ Sygnia.Application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
     │                              private sealed handlers, FluentValidation. AddApplication()
     ├─ Sygnia.Infrastructure/      DbContext + composite-key config, repositories incl. the 2627
     │                              catch. AddInfrastructure(connectionString)
     ├─ Sygnia.Presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
     │                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
-    └─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
-tests/
-├─ Sygnia.UnitTests/               domain guards, balance math, Result mapping
-└─ Sygnia.IntegrationTests/        Testcontainers — real SQL Server, not in-memory
+    ├─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
+    └─ tests/
+        ├─ Sygnia.UnitTests/       domain guards, balance math, Result mapping
+        └─ Sygnia.IntegrationTests/  Testcontainers — real SQL Server, not in-memory
 ```
+
+**Tests live *inside* `src/Sygnia.Backend/`, not beside `src/`.** They have to: `global.json` and the two `Directory.*.props` files sit at `src/Sygnia.Backend/`, and MSBuild only discovers them by walking *up* from a project. A test project at the repo root would silently miss all three — resolving the .NET 10 preview SDK instead of 8, and losing central package management.
 
 Reference direction — easiest thing to get wrong in a scaffold, hardest to unpick later:
 
