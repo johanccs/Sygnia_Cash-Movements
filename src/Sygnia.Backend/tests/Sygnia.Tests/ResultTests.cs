@@ -1,6 +1,6 @@
 using Sygnia.Domain;
 
-namespace Sygnia.UnitTests;
+namespace Sygnia.Tests;
 
 /// <summary>
 /// Result carries expected business failures as values, so the compiler forces the caller

@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Sygnia.Domain\Sygnia.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Sygnia.Domain\Sygnia.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

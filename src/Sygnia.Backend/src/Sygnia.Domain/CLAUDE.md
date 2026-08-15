@@ -7,31 +7,34 @@ specific to the domain layer.
 
 ```
 ** Instructions
-1. Create Models folder in src\Sygnia.Backend\Sygnia.Domain project
+1. Create Models folder in src\Sygnia.Backend\src\Sygnia.Domain project
 2. Create domain models:
     - Account
     - User
     - Movement
 3. Create methods to update account name and contactperson
-
 ```
 
 All three are implemented and covered by tests in
-`src/Sygnia.Backend/tests/Sygnia.UnitTests/`.
+`src/Sygnia.Backend/tests/Sygnia.Tests/`.
 
 ## What is here
 
 ```
-Sygnia.Domain/
+src/Sygnia.Domain/
 ├─ Models/
 │   ├─ Account.cs    AccountId, AccountName, ContactPerson, CreatedDate, CreatedBy
 │   │                + WithAccountName / WithContactPerson
 │   ├─ Movement.cs   the (AccountId, ExternalRef) composite key; signed Amount; IsDeposit
 │   └─ User.cs       Id, Name, Surname, FullName
-├─ Guard.cs          shared guard clauses (internal)
-├─ Result.cs         Result<T> — expected failures as values
-└─ Error.cs          Error(Code, Message)
+└─ Helpers/
+    ├─ Guard.cs      shared guard clauses (internal)
+    ├─ Result.cs     Result<T> — expected failures as values
+    └─ Error.cs      Error(Code, Message)
 ```
+
+The `Helpers/` folder is organisational only — those three types stay in the `Sygnia.Domain`
+namespace, not `Sygnia.Domain.Helpers`, so callers need no extra `using`.
 
 **This project references nothing.** It is the innermost layer; adding a dependency here —
 EF Core, a NuGet package, another project — breaks Clean Architecture. If something seems to
@@ -78,6 +81,9 @@ behaviour — a compile error is a weak red that proves nothing about the guard.
 ```bash
 dotnet test    # from src/Sygnia.Backend
 ```
+
+`Sygnia.Tests` holds **both** unit and integration tests — it is named `Sygnia.Tests`, not
+`Sygnia.UnitTests`, for exactly that reason.
 
 ## Known gap
 

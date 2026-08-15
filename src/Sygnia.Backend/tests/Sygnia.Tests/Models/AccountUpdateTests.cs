@@ -1,6 +1,6 @@
 using Sygnia.Domain.Models;
 
-namespace Sygnia.UnitTests.Models;
+namespace Sygnia.Tests.Models;
 
 /// <summary>
 /// Account properties are readonly, so an "update" produces a new Account rather than

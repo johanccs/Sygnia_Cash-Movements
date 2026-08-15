@@ -54,21 +54,30 @@ Clean Architecture, dependencies inward only. Each project exposes public interf
 
 ```
 src/
-├─ Sygnia.Frontend/                Angular 18 SPA — gRPC-Web clients
-└─ Sygnia.Backend/                 .NET 8 solution
-    ├─ Sygnia.Domain/              no dependencies. Models/ (Movement, Account, User), Guard,
-    │                              Result<T>, Error. AddDomain()
-    ├─ Sygnia.Application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
-    │                              private sealed handlers, FluentValidation. AddApplication()
-    ├─ Sygnia.Infrastructure/      DbContext + composite-key config, repositories incl. the 2627
-    │                              catch. AddInfrastructure(connectionString)
-    ├─ Sygnia.Presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
-    │                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
-    ├─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
+├─ Sygnia.Frontend/                    Angular 18 SPA — gRPC-Web clients
+└─ Sygnia.Backend/                     .NET 8 solution
+    ├─ Sygnia.Backend.sln              src/ and tests/ also exist as solution folders
+    ├─ global.json                     pins SDK 8.0.319
+    ├─ Directory.Build.props           shared build properties
+    ├─ Directory.Packages.props        central package management
+    ├─ src/
+    │   ├─ Sygnia.Domain/              no dependencies. Models/ (Movement, Account, User),
+    │   │                              Helpers/ (Guard, Result<T>, Error). AddDomain()
+    │   ├─ Sygnia.Application/         ports (IMovementRepository, IBalanceReader,
+    │   │                              IStatementReader), private sealed handlers,
+    │   │                              FluentValidation. AddApplication()
+    │   ├─ Sygnia.Infrastructure/      DbContext + composite-key config, repositories incl.
+    │   │                              the 2627 catch. AddInfrastructure(connectionString)
+    │   ├─ Sygnia.Presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
+    │   │                              Result<T> → StatusCode mapping. Program.cs is four AddX()
+    │   └─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
     └─ tests/
-        ├─ Sygnia.UnitTests/       domain guards, balance math, Result mapping
-        └─ Sygnia.IntegrationTests/  Testcontainers — real SQL Server, not in-memory
+        └─ Sygnia.Tests/               unit tests now, integration tests later — hence the
+                                       plain name rather than Sygnia.UnitTests
 ```
+
+The `src` and `tests` directories are mirrored by **solution folders** of the same names in
+`Sygnia.Backend.sln`, so Solution Explorer and disk agree.
 
 **Tests live *inside* `src/Sygnia.Backend/`, not beside `src/`.** They have to: `global.json` and the two `Directory.*.props` files sit at `src/Sygnia.Backend/`, and MSBuild only discovers them by walking *up* from a project. A test project at the repo root would silently miss all three — resolving the .NET 10 preview SDK instead of 8, and losing central package management.
 

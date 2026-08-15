@@ -15,3 +15,10 @@
 3. Compile and build projects
 4. For .net solution - implement Directory.Build and Directory.Packages for centralization
 5. Add node_modules to .gitignore
+6. Create 2 solution folders in Sygnia.Backend
+    - 1. src
+        - move all the projects except the tests folder into src
+    - 2. tests
+        - move Sygnia.UnitTests into the tests solution folder. Delete the original tests folder/
+        - Rename Sygnia.UnitTests to Sygnia.Tests
+            - reason - Sygnia.Tests will be for unittests and integration tests

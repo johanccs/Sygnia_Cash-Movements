@@ -192,8 +192,9 @@ src/
         └─ one NetTcp operation: GetBalance(accountId), as a gRPC client
 
 tests/
-├─ Sygnia.UnitTests/               domain guards, balance math, Result mapping
-└─ Sygnia.IntegrationTests/        Testcontainers — real SQL Server
+└─ Sygnia.Tests/                   one project for both unit and integration tests:
+                                   domain guards, balance math, Result mapping, and
+                                   Testcontainers against real SQL Server
 ```
 
 Reference direction, which is the thing easiest to get wrong in a scaffold and hardest
@@ -300,8 +301,8 @@ first if time runs short — **ask before dropping one**, rather than deciding s
    `src/Sygnia.Backend` (.NET 8 solution, four projects, reference direction as above).
    Compile and build both.
    *Done when:* `dotnet build` succeeds and `ng build` succeeds.
-2. **Test projects** — `Sygnia.UnitTests`, `Sygnia.IntegrationTests`, wired into the
-   solution. *Done when:* `dotnet test` runs and reports zero tests, zero failures.
+2. **Test project** — `Sygnia.Tests`, wired into the solution. One project carries both unit
+   and integration tests. *Done when:* `dotnet test` runs and reports zero failures.
 3. **Domain (TDD)** — tests first for the guard clauses: null account id throws, blank
    currency throws, zero amount throws. Then `Movement`, `Account`, `Result<T>`.
    *Done when:* every guard has a red-then-green test.

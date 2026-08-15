@@ -16,7 +16,15 @@
       "Bash(mkdir -p tests)",
       "Bash(rm -f tests/Sygnia.UnitTests/UnitTest1.cs)",
       "Bash(rm -rf tests/Sygnia.UnitTests/TestResults)",
-      "Bash(dotnet test *)"
+      "Bash(dotnet test *)",
+      "Bash(dotnet build-server *)",
+      "Bash(rm -rf Sygnia.Domain/bin Sygnia.Domain/obj)",
+      "Bash(mv Sygnia.Domain src/Sygnia.Domain)",
+      "Bash(rm -rf Sygnia.UnitTests/bin Sygnia.UnitTests/obj Sygnia.UnitTests/TestResults)",
+      "Bash(mv Sygnia.UnitTests Sygnia.Tests)",
+      "Bash(mv Sygnia.Tests/Sygnia.UnitTests.csproj Sygnia.Tests/Sygnia.Tests.csproj)",
+      "Bash(rm -f Sygnia.Backend.sln)",
+      "Bash(rm -rf src/*/bin src/*/obj tests/*/bin tests/*/obj)"
     ]
   }
 }

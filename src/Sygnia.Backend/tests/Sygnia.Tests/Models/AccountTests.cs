@@ -1,6 +1,6 @@
 using Sygnia.Domain.Models;
 
-namespace Sygnia.UnitTests.Models;
+namespace Sygnia.Tests.Models;
 
 public sealed class AccountTests
 {

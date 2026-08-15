@@ -1,6 +1,6 @@
 using Sygnia.Domain.Models;
 
-namespace Sygnia.UnitTests.Models;
+namespace Sygnia.Tests.Models;
 
 /// <summary>
 /// A Movement that exists must be valid — that is the whole point of validating in the
