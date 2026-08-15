@@ -5,6 +5,11 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\movements.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sygnia.Tests" />
   </ItemGroup>
 
   <ItemGroup>
