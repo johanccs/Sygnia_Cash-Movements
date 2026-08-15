@@ -2,5 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Sygnia Balance Lookup" Height="180" Width="360">
-    <Grid />
+    <StackPanel Margin="16">
+        <TextBlock Text="Account ID" Margin="0,0,0,4" />
+        <TextBox x:Name="AccountIdTextBox" Text="ACC-001" Margin="0,0,0,12" />
+        <Button x:Name="GetBalanceButton" Content="Get Balance" Click="GetBalanceButton_Click" Width="120" HorizontalAlignment="Left" />
+        <TextBlock x:Name="ResultTextBlock" Margin="0,16,0,0" TextWrapping="Wrap" />
+    </StackPanel>
 </Window>
