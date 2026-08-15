@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Build properties are centralised in ..\Directory.Build.props -->
+
+  <ItemGroup>
+    <ProjectReference Include="..\sygnia.application\sygnia.application.csproj" />
+  </ItemGroup>
+
+</Project>

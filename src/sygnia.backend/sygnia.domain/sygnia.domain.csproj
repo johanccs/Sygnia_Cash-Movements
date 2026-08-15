@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Build properties are centralised in ..\Directory.Build.props -->
+  <!-- sygnia.domain intentionally has no references: the innermost layer depends on nothing. -->
+
+</Project>

@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- Build properties are centralised in ..\Directory.Build.props -->
+  <!-- Package versions are centralised in ..\Directory.Packages.props -->
+
+  <ItemGroup>
+    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\sygnia.application\sygnia.application.csproj" />
+    <ProjectReference Include="..\sygnia.infrastructure\sygnia.infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
