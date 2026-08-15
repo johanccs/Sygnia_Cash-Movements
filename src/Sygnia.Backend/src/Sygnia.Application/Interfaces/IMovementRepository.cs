@@ -31,7 +31,4 @@ public interface IMovementRepository
         Movement debit,
         Movement credit,
         CancellationToken cancellationToken);
-
-    /// <summary>Whether an account with this id exists, for NOT_FOUND checks before writing.</summary>
-    Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken);
 }

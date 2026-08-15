@@ -8,6 +8,8 @@ public sealed class AccountEntity
 
     public string? ContactPerson { get; set; }
 
+    public required string Currency { get; set; }
+
     public DateTime CreatedDate { get; set; }
 
     public required string CreatedBy { get; set; }

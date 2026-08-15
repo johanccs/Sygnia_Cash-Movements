@@ -84,3 +84,28 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260815123315_AddAccountCurrency'
+)
+BEGIN
+    ALTER TABLE [Accounts] ADD [Currency] nvarchar(3) NOT NULL DEFAULT N'';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260815123315_AddAccountCurrency'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260815123315_AddAccountCurrency', N'8.0.10');
+END;
+GO
+
+COMMIT;
+GO
+

@@ -13,7 +13,7 @@ public sealed class AccountUpdateTests
         new(2024, 7, 15, 10, 42, 31, DateTimeKind.Utc);
 
     private static Account CreateValid() =>
-        new("ACC-001", "Operations ZAR", "Jane Doe", CreatedOn, "jsmith");
+        new("ACC-001", "Operations ZAR", "Jane Doe", "ZAR", CreatedOn, "jsmith");
 
     // --- WithAccountName ---
 

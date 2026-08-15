@@ -6,13 +6,13 @@ GO
 
 IF NOT EXISTS (SELECT 1 FROM Accounts WHERE AccountId = 'ACC-001')
 BEGIN
-    INSERT INTO Accounts (AccountId, AccountName, ContactPerson, CreatedDate, CreatedBy)
-    VALUES ('ACC-001', 'Acme Holdings', 'Jane Smith', SYSUTCDATETIME(), 'seed-script');
+    INSERT INTO Accounts (AccountId, AccountName, ContactPerson, Currency, CreatedDate, CreatedBy)
+    VALUES ('ACC-001', 'Acme Holdings', 'Jane Smith', 'ZAR', SYSUTCDATETIME(), 'seed-script');
 END
 
 IF NOT EXISTS (SELECT 1 FROM Accounts WHERE AccountId = 'ACC-002')
 BEGIN
-    INSERT INTO Accounts (AccountId, AccountName, ContactPerson, CreatedDate, CreatedBy)
-    VALUES ('ACC-002', 'Beacon Traders', 'John Doe', SYSUTCDATETIME(), 'seed-script');
+    INSERT INTO Accounts (AccountId, AccountName, ContactPerson, Currency, CreatedDate, CreatedBy)
+    VALUES ('ACC-002', 'Beacon Traders', 'John Doe', 'ZAR', SYSUTCDATETIME(), 'seed-script');
 END
 GO

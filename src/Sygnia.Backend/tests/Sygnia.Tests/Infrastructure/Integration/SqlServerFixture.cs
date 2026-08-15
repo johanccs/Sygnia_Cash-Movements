@@ -32,7 +32,7 @@ public sealed class SqlServerFixture : IAsyncLifetime
     }
 
     /// <summary>Inserts an account directly, bypassing the repositories under test.</summary>
-    public async Task SeedAccountAsync(string accountId)
+    public async Task SeedAccountAsync(string accountId, string currency = "ZAR")
     {
         await using var db = CreateContext();
         db.Accounts.Add(new AccountEntity
@@ -40,6 +40,7 @@ public sealed class SqlServerFixture : IAsyncLifetime
             AccountId = accountId,
             AccountName = "Test Account",
             ContactPerson = null,
+            Currency = currency,
             CreatedDate = DateTime.UtcNow,
             CreatedBy = "test",
         });

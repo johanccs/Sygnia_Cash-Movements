@@ -30,6 +30,7 @@ public sealed class SygniaDbContext(DbContextOptions<SygniaDbContext> options) :
             entity.Property(a => a.AccountId).HasMaxLength(Account.AccountIdMaxLength);
             entity.Property(a => a.AccountName).HasMaxLength(Account.AccountNameMaxLength).IsRequired();
             entity.Property(a => a.ContactPerson).HasMaxLength(Account.ContactPersonMaxLength);
+            entity.Property(a => a.Currency).HasMaxLength(3).IsRequired();
             entity.Property(a => a.CreatedBy).HasMaxLength(Account.CreatedByMaxLength).IsRequired();
         });
 

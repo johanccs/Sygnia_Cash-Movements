@@ -8,6 +8,7 @@ namespace Sygnia.Application.Commands.SubmitMovement;
 
 internal sealed class SubmitMovementCommandHandler(
     IMovementRepository movementRepository,
+    IAccountRepository accountRepository,
     IValidator<SubmitMovementCommand> validator) : IRequestHandler<SubmitMovementCommand, Result<Movement>>
 {
     public async Task<Result<Movement>> Handle(SubmitMovementCommand request, CancellationToken cancellationToken)
@@ -18,10 +19,20 @@ internal sealed class SubmitMovementCommandHandler(
             return Result<Movement>.Failure(ToValidationError(validation));
         }
 
-        if (!await movementRepository.AccountExistsAsync(request.AccountId, cancellationToken))
+        var account = await accountRepository.GetAsync(request.AccountId, cancellationToken);
+        if (account is null)
         {
             return Result<Movement>.Failure(
                 new Error("account.not_found", $"Account '{request.AccountId}' does not exist."));
+        }
+
+        // The balance SUM has no notion of currency, so a mismatched submission would silently
+        // corrupt it rather than fail loudly — reject it here instead.
+        if (!string.Equals(account.Currency, request.Currency, StringComparison.Ordinal))
+        {
+            return Result<Movement>.Failure(new Error(
+                "movement.currency.invalid",
+                $"Account '{request.AccountId}' is '{account.Currency}'; movement was submitted in '{request.Currency}'."));
         }
 
         var movement = new Movement(
