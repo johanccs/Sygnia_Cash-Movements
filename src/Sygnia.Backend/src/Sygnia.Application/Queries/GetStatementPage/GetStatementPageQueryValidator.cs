@@ -19,6 +19,6 @@ internal sealed class GetStatementPageQueryValidator : AbstractValidator<GetStat
             .GreaterThanOrEqualTo(1);
 
         RuleFor(q => q.PageSize)
-            .GreaterThanOrEqualTo(1);
+            .InclusiveBetween(1, 200);
     }
 }

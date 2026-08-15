@@ -53,6 +53,21 @@ npm run gen:proto
 - `*_pb.js` + `*_pb.d.ts` — protobuf message classes (from `google-protobuf`'s `js_out`)
 - `*ServiceClientPb.ts` — the gRPC-Web client stub (from `grpc-web`'s `grpc-web_out`)
 
+## Dev server / google-protobuf CommonJS
+
+`angular.json`'s `serve.options.prebundle.exclude: ["google-protobuf", "google-protobuf/google/protobuf/timestamp_pb.js"]`
+and `build.options.allowedCommonJsDependencies` are load-bearing, not optional tidiness. `google-protobuf`'s
+generated CommonJS code uses a dynamic-require pattern that Vite's dev-time dependency pre-bundler cannot
+statically resolve, which crashes `ng serve` before the app even bootstraps (production `ng build` was always
+fine, since the production build doesn't go through Vite's pre-bundler). The fix is excluding `google-protobuf`
+from pre-bundling. Do not remove either setting without re-verifying `ng serve` still renders both `/` and a
+gRPC-dependent route such as `/accounts`.
+
+## Known branding gaps
+
+There is no real Sygnia logo asset available, so the nav bar uses a text wordmark instead of an image logo.
+`public/favicon.ico` is also still the unmodified Angular CLI default favicon, pending a real Sygnia brand asset.
+
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

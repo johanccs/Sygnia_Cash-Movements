@@ -61,4 +61,16 @@ public sealed class GetStatementPageQueryHandlerTests
         Assert.Equal(2, result.Value.Rows.Count);
         Assert.Equal(3, result.Value.TotalCount);
     }
+
+    [Fact]
+    public async Task Handle_PageSizeAboveMaximum_ReturnsInvalid()
+    {
+        var handler = new GetStatementPageQueryHandler(new FakeStatementReader(), new GetStatementPageQueryValidator());
+        var query = new GetStatementPageQuery(AccountId, DateTime.UtcNow.AddDays(-1), DateTime.UtcNow, 1, 201);
+
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("statement.invalid", result.Error.Code);
+    }
 }

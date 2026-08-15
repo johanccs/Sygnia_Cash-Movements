@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AccountServiceClient } from '../grpc/AccountsServiceClientPb';
 import { Account, CreateAccountRequest, GetAccountRequest } from '../grpc/accounts_pb';
+import { environment } from '../../environments/environment';
 
 /** Plain DTO mirroring the wire Account message, with Timestamps converted to JS Dates. */
 export interface AccountDto {
@@ -34,7 +35,7 @@ function mapAccount(account: Account): AccountDto {
 
 @Injectable({
   providedIn: 'root',
-  useFactory: () => new AccountService(new AccountServiceClient('http://localhost:5000')),
+  useFactory: () => new AccountService(new AccountServiceClient(environment.grpcUrl)),
 })
 export class AccountService {
   constructor(private readonly client: AccountServiceClient) {}

@@ -9,6 +9,7 @@ using Sygnia.Application.Commands.SubmitMovement;
 using Sygnia.Application.Commands.TransferFunds;
 using Sygnia.Application.Queries.GetBalance;
 using Sygnia.Application.Queries.GetStatement;
+using Sygnia.Application.Queries.GetStatementPage;
 
 namespace Sygnia.Application;
 
@@ -33,6 +34,7 @@ public static class AppModuleExtensions
         services.AddScoped<IValidator<TransferFundsCommand>, TransferFundsCommandValidator>();
         services.AddScoped<IValidator<GetBalanceQuery>, GetBalanceQueryValidator>();
         services.AddScoped<IValidator<GetStatementQuery>, GetStatementQueryValidator>();
+        services.AddScoped<IValidator<GetStatementPageQuery>, GetStatementPageQueryValidator>();
         services.AddScoped<IValidator<CreateAccountCommand>, CreateAccountCommandValidator>();
         services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
 
