@@ -1,0 +1,6 @@
+<Window x:Class="Sygnia.WpfClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sygnia Balance Lookup" Height="180" Width="360">
+    <Grid />
+</Window>

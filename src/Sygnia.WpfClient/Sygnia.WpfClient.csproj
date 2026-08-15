@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+
+  <!--
+    Shares the WCF contract with Sygnia.Wcf.Gateway by linking the same files rather than
+    duplicating them or generating a service reference — both projects are net48, so the
+    types are usable as-is.
+  -->
+  <ItemGroup>
+    <Compile Include="..\Sygnia.Backend\src\Sygnia.Wcf.Gateway\Contracts\IBalanceService.cs" Link="Contracts\IBalanceService.cs" />
+    <Compile Include="..\Sygnia.Backend\src\Sygnia.Wcf.Gateway\Contracts\BalanceResponse.cs" Link="Contracts\BalanceResponse.cs" />
+    <Compile Include="..\Sygnia.Backend\src\Sygnia.Wcf.Gateway\Contracts\BalanceFault.cs" Link="Contracts\BalanceFault.cs" />
+  </ItemGroup>
+
+</Project>
