@@ -21,3 +21,9 @@
 11. Write unit tests and integration tests
 12. Use lazy loading in linq statements as much as possible.
 13. Infrastructure / Application must convert between domain models and efcore entities
+14. Create seed sql scripts that can be executed in ssm directly. 
+    - Create 2 accounts
+    - create 3 users
+    - when creating a statement - it can consist of 50 000 items - create a seed script to test this scenario
+    - Create a scripts folder in Sygnia.Backend root folder
+    - Store all scripts in this folder.
