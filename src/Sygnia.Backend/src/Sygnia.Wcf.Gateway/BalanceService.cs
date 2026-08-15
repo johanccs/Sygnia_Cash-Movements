@@ -1,0 +1,35 @@
+using System;
+using System.ServiceModel;
+using Grpc.Core;
+using Sygnia.Wcf.Gateway.Contracts;
+
+namespace Sygnia.Wcf.Gateway
+{
+    // The gRPC call is expressed as a delegate rather than the concrete generated client so
+    // this class stays trivially testable from the net8.0 Sygnia.Tests project without a real
+    // channel: Func<accountId, (accountId, balance)>.
+    public class BalanceService : IBalanceService
+    {
+        private readonly Func<string, (string AccountId, string Balance)> getBalance;
+
+        public BalanceService(Func<string, (string AccountId, string Balance)> getBalance)
+        {
+            this.getBalance = getBalance ?? throw new ArgumentNullException(nameof(getBalance));
+        }
+
+        public BalanceResponse GetBalance(string accountId)
+        {
+            try
+            {
+                var (id, balance) = getBalance(accountId);
+                return new BalanceResponse { AccountId = id, Balance = balance };
+            }
+            catch (RpcException ex)
+            {
+                throw new FaultException<BalanceFault>(
+                    new BalanceFault { Message = ex.Status.Detail },
+                    new FaultReason(ex.Status.Detail));
+            }
+        }
+    }
+}

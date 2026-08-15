@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.Tests", "tests\Sygni
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.Wcf.Gateway", "src\Sygnia.Wcf.Gateway\Sygnia.Wcf.Gateway.csproj", "{104A407F-26E0-449A-A159-2294BE937BB9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sygnia.Wcf.Gateway.Tests", "tests\Sygnia.Wcf.Gateway.Tests\Sygnia.Wcf.Gateway.Tests.csproj", "{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{104A407F-26E0-449A-A159-2294BE937BB9}.Release|x64.Build.0 = Release|Any CPU
 		{104A407F-26E0-449A-A159-2294BE937BB9}.Release|x86.ActiveCfg = Release|Any CPU
 		{104A407F-26E0-449A-A159-2294BE937BB9}.Release|x86.Build.0 = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|x64.Build.0 = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Debug|x86.Build.0 = Debug|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|x64.ActiveCfg = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|x64.Build.0 = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|x86.ActiveCfg = Release|Any CPU
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,5 +126,6 @@ Global
 		{72E5F45A-350E-451F-9467-BC81F4B4186B} = {DE92534F-F5D9-4BE0-8BEF-142DD85FE429}
 		{E2AFA460-6862-4574-B87A-EE9BA1075B5A} = {9D995E16-E08D-4865-8A9F-63235D36009D}
 		{104A407F-26E0-449A-A159-2294BE937BB9} = {DE92534F-F5D9-4BE0-8BEF-142DD85FE429}
+		{5B33D8B6-DFAB-4593-8E07-4CBD01430BFF} = {9D995E16-E08D-4865-8A9F-63235D36009D}
 	EndGlobalSection
 EndGlobal

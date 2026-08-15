@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    net48, matching Sygnia.Wcf.Gateway: this project must resolve FaultException<T> via the
+    classic in-box System.ServiceModel and must never reference Sygnia.Presentation (directly
+    or transitively), to avoid the Movements-namespace collision. See CLAUDE.md's Known traps
+    and the controller ruling in task-3-report.md.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ServiceModel" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sygnia.Wcf.Gateway\Sygnia.Wcf.Gateway.csproj" />
+  </ItemGroup>
+
+</Project>
