@@ -17,6 +17,8 @@ public static class InfrastructureModuleExtensions
         services.AddDbContext<SygniaDbContext>(options => options.UseSqlServer(connectionString));
 
         services.AddScoped<IMovementRepository, MovementRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IBalanceReader, BalanceReader>();
         services.AddScoped<IStatementReader, StatementReader>();
 

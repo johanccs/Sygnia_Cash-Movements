@@ -18,9 +18,6 @@ namespace Sygnia.Infrastructure.Repositories;
 /// </summary>
 internal sealed class MovementRepository(SygniaDbContext db) : IMovementRepository
 {
-    public Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken) =>
-        db.Accounts.AsNoTracking().AnyAsync(a => a.AccountId == accountId, cancellationToken);
-
     public async Task<Result<Movement>> AddAsync(Movement movement, CancellationToken cancellationToken)
     {
         var entity = movement.ToEntity();

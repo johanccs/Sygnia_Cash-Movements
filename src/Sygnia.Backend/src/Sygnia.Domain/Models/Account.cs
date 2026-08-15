@@ -14,6 +14,7 @@ public sealed class Account
         string accountId,
         string accountName,
         string? contactPerson,
+        string currency,
         DateTime createdDate,
         string createdBy)
     {
@@ -25,6 +26,8 @@ public sealed class Account
 
         Guard.AgainstTooLong(contactPerson, ContactPersonMaxLength, nameof(contactPerson));
 
+        Guard.AgainstInvalidCurrency(currency, nameof(currency));
+
         Guard.AgainstNonUtcOrDefault(createdDate, nameof(createdDate));
 
         Guard.AgainstNullOrWhiteSpace(createdBy, nameof(createdBy));
@@ -33,6 +36,7 @@ public sealed class Account
         AccountId = accountId;
         AccountName = accountName;
         ContactPerson = contactPerson;
+        Currency = currency;
         CreatedDate = createdDate;
         CreatedBy = createdBy;
     }
@@ -44,6 +48,15 @@ public sealed class Account
 
     /// <summary>Optional.</summary>
     public string? ContactPerson { get; }
+
+    /// <summary>
+    /// Three-letter ISO 4217 code, e.g. <c>ZAR</c>. Every movement submitted against this
+    /// account must be in this currency — see <c>SubmitMovementCommandHandler</c> and
+    /// <c>TransferFundsCommandHandler</c>, which reject a mismatch as
+    /// <c>movement.currency.invalid</c> rather than letting the balance <c>SUM</c> silently
+    /// mix currencies.
+    /// </summary>
+    public string Currency { get; }
 
     /// <summary>UTC.</summary>
     public DateTime CreatedDate { get; }
@@ -68,7 +81,7 @@ public sealed class Account
         }
 
         return Result<Account>.Success(
-            new Account(AccountId, accountName, ContactPerson, CreatedDate, CreatedBy));
+            new Account(AccountId, accountName, ContactPerson, Currency, CreatedDate, CreatedBy));
     }
 
     /// <summary>
@@ -84,7 +97,7 @@ public sealed class Account
         }
 
         return Result<Account>.Success(
-            new Account(AccountId, AccountName, contactPerson, CreatedDate, CreatedBy));
+            new Account(AccountId, AccountName, contactPerson, Currency, CreatedDate, CreatedBy));
     }
 
     private static Error? ValidateAccountName(string? accountName)

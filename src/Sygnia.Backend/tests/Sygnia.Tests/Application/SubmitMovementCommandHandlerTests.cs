@@ -14,8 +14,10 @@ public sealed class SubmitMovementCommandHandlerTests
 
     private static (SubmitMovementCommandHandler Handler, FakeMovementRepository Repository) CreateSut()
     {
-        var repository = new FakeMovementRepository { ExistingAccountIds = { AccountId } };
-        var handler = new SubmitMovementCommandHandler(repository, new SubmitMovementCommandValidator());
+        var repository = new FakeMovementRepository();
+        var accounts = new FakeAccountRepository();
+        accounts.AddExisting(AccountId);
+        var handler = new SubmitMovementCommandHandler(repository, accounts, new SubmitMovementCommandValidator());
         return (handler, repository);
     }
 
@@ -23,7 +25,7 @@ public sealed class SubmitMovementCommandHandlerTests
     public async Task Handle_UnknownAccount_ReturnsNotFoundFailure()
     {
         var repository = new FakeMovementRepository();
-        var handler = new SubmitMovementCommandHandler(repository, new SubmitMovementCommandValidator());
+        var handler = new SubmitMovementCommandHandler(repository, new FakeAccountRepository(), new SubmitMovementCommandValidator());
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -66,6 +68,20 @@ public sealed class SubmitMovementCommandHandlerTests
         Assert.True(first.IsSuccess);
         Assert.True(second.IsSuccess);
         Assert.Equal(first.Value.RefNr, second.Value.RefNr);
+    }
+
+    [Fact]
+    public async Task Handle_CurrencyMismatchWithAccount_ReturnsCurrencyInvalidFailure()
+    {
+        var repository = new FakeMovementRepository();
+        var accounts = new FakeAccountRepository();
+        accounts.AddExisting(AccountId, currency: "USD");
+        var handler = new SubmitMovementCommandHandler(repository, accounts, new SubmitMovementCommandValidator());
+
+        var result = await handler.Handle(CreateCommand(), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("movement.currency.invalid", result.Error.Code);
     }
 
     [Fact]

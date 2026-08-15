@@ -18,6 +18,9 @@ internal static class ResultExtensions
         {
             "account.not_found" => StatusCode.NotFound,
             "movement.already_exists" => StatusCode.AlreadyExists,
+            "account.already_exists" => StatusCode.AlreadyExists,
+            "user.not_found" => StatusCode.NotFound,
+            "user.already_exists" => StatusCode.AlreadyExists,
             _ when error.Code.EndsWith(".invalid", StringComparison.Ordinal) => StatusCode.InvalidArgument,
             _ => StatusCode.Internal,
         };

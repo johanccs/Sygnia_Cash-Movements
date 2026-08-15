@@ -1,0 +1,38 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+option csharp_namespace = "Sygnia.Presentation";
+package accounts;
+
+service AccountService {
+  rpc CreateAccount(CreateAccountRequest) returns (Account);
+  rpc GetAccount(GetAccountRequest) returns (Account);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+}
+
+message Account {
+  string account_id = 1;
+  string account_name = 2;
+  string contact_person = 3;
+  string currency = 4;
+  google.protobuf.Timestamp created_date = 5;
+  string created_by = 6;
+}
+
+message CreateAccountRequest {
+  string account_id = 1;
+  string account_name = 2;
+  string contact_person = 3;
+  string currency = 4;
+  string created_by = 5;
+}
+
+message GetAccountRequest {
+  string account_id = 1;
+}
+
+message ListAccountsRequest {
+}
+
+message ListAccountsResponse {
+  repeated Account accounts = 1;
+}

@@ -11,10 +11,6 @@ namespace Sygnia.Tests.Application.Fakes;
 public sealed class FakeMovementRepository : IMovementRepository
 {
     private readonly Dictionary<(string AccountId, string ExternalRef), Movement> _stored = new();
-    public HashSet<string> ExistingAccountIds { get; } = new();
-
-    public Task<bool> AccountExistsAsync(string accountId, CancellationToken cancellationToken) =>
-        Task.FromResult(ExistingAccountIds.Contains(accountId));
 
     public Task<Result<Movement>> AddAsync(Movement movement, CancellationToken cancellationToken)
     {

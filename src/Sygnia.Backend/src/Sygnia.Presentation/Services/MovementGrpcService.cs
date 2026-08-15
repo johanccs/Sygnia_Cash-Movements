@@ -5,6 +5,7 @@ using Sygnia.Application.Commands.SubmitMovement;
 using Sygnia.Application.Commands.TransferFunds;
 using Sygnia.Application.Queries.GetBalance;
 using Sygnia.Application.Queries.GetStatement;
+using Sygnia.Application.Queries.GetStatementPage;
 using Sygnia.Presentation.Mapping;
 
 namespace Sygnia.Presentation.Services;
@@ -97,5 +98,37 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
                 RunningTotal = line.RunningTotal.ToAmountString(),
             });
         }
+    }
+
+    /// <summary>
+    /// A buffered page for the UI's paginated table — a normal request/response RPC, distinct
+    /// from <see cref="GetStatement"/>'s server streaming. Does not compute a running total,
+    /// since that is only meaningful over the full ordered stream.
+    /// </summary>
+    public override async Task<GetStatementPageResponse> GetStatementPage(
+        GetStatementPageRequest request, ServerCallContext context)
+    {
+        // From/To are optional on this RPC (unlike GetStatement's required range) — an unset
+        // Timestamp field comes back as a null reference, not a default instance.
+        var query = new GetStatementPageQuery(
+            request.AccountId,
+            request.From is null ? DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc) : request.From.ToDateTime(),
+            request.To is null ? DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) : request.To.ToDateTime(),
+            request.PageNumber,
+            request.PageSize);
+
+        var result = await mediator.Send(query, context.CancellationToken);
+        if (result.IsFailure)
+        {
+            throw result.Error.ToRpcException();
+        }
+
+        var response = new GetStatementPageResponse { TotalCount = result.Value.TotalCount };
+        response.Lines.AddRange(result.Value.Rows.Select(movement => new StatementLine
+        {
+            Movement = movement.ToProto(),
+        }));
+
+        return response;
     }
 }

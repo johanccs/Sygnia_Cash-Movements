@@ -8,6 +8,7 @@ namespace Sygnia.Application.Commands.TransferFunds;
 
 internal sealed class TransferFundsCommandHandler(
     IMovementRepository movementRepository,
+    IAccountRepository accountRepository,
     IValidator<TransferFundsCommand> validator) : IRequestHandler<TransferFundsCommand, Result<TransferResult>>
 {
     public async Task<Result<TransferResult>> Handle(TransferFundsCommand request, CancellationToken cancellationToken)
@@ -19,16 +20,35 @@ internal sealed class TransferFundsCommandHandler(
             return Result<TransferResult>.Failure(new Error("transfer.invalid", message));
         }
 
-        if (!await movementRepository.AccountExistsAsync(request.FromAccountId, cancellationToken))
+        var fromAccount = await accountRepository.GetAsync(request.FromAccountId, cancellationToken);
+        if (fromAccount is null)
         {
             return Result<TransferResult>.Failure(
                 new Error("account.not_found", $"Account '{request.FromAccountId}' does not exist."));
         }
 
-        if (!await movementRepository.AccountExistsAsync(request.ToAccountId, cancellationToken))
+        var toAccount = await accountRepository.GetAsync(request.ToAccountId, cancellationToken);
+        if (toAccount is null)
         {
             return Result<TransferResult>.Failure(
                 new Error("account.not_found", $"Account '{request.ToAccountId}' does not exist."));
+        }
+
+        // Both legs share one Currency on the wire, but each account may have its own —
+        // reject a transfer that doesn't match either side rather than let the balance SUM
+        // silently mix currencies.
+        if (!string.Equals(fromAccount.Currency, request.Currency, StringComparison.Ordinal))
+        {
+            return Result<TransferResult>.Failure(new Error(
+                "movement.currency.invalid",
+                $"Account '{request.FromAccountId}' is '{fromAccount.Currency}'; transfer was submitted in '{request.Currency}'."));
+        }
+
+        if (!string.Equals(toAccount.Currency, request.Currency, StringComparison.Ordinal))
+        {
+            return Result<TransferResult>.Failure(new Error(
+                "movement.currency.invalid",
+                $"Account '{request.ToAccountId}' is '{toAccount.Currency}'; transfer was submitted in '{request.Currency}'."));
         }
 
         var debit = new Movement(

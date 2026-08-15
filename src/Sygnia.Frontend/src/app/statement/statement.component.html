@@ -1,0 +1,53 @@
+<div class="container pt-2 pb-5">
+  <h1 class="display-6 fw-bold mb-4">Statement</h1>
+
+  <form [formGroup]="form" (ngSubmit)="search()" class="row g-3 align-items-end mb-4">
+    <div class="col-md-3">
+      <label for="accountId" class="form-label">Account Id</label>
+      <select id="accountId" class="form-select form-select-sm" formControlName="accountId">
+        <option value="" disabled>Select account</option>
+        @for (account of accounts; track account.accountId) {
+          <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+        }
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <label for="from" class="form-label">From</label>
+      <input id="from" type="date" class="form-control form-control-sm" formControlName="from" />
+    </div>
+
+    <div class="col-md-3">
+      <label for="to" class="form-label">To</label>
+      <input id="to" type="date" class="form-control form-control-sm" formControlName="to" />
+    </div>
+
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Search</button>
+    </div>
+  </form>
+
+  @if (errorMessage) {
+    <div class="alert alert-danger" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (currentPage(); as page) {
+    <app-statement-preview [lines]="page.lines" />
+
+    <nav aria-label="Statement pagination" class="mt-3">
+      <ul class="pagination">
+        <li class="page-item" [class.disabled]="pageNumber() <= 1">
+          <button type="button" class="page-link" (click)="goToPage(pageNumber() - 1)">Previous</button>
+        </li>
+        <li class="page-item disabled">
+          <span class="page-link">Page {{ pageNumber() }} of {{ totalPages() }}</span>
+        </li>
+        <li class="page-item" [class.disabled]="pageNumber() >= totalPages()">
+          <button type="button" class="page-link" (click)="goToPage(pageNumber() + 1)">Next</button>
+        </li>
+      </ul>
+    </nav>
+  }
+</div>
