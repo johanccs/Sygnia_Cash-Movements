@@ -9,7 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/Senior_C___NET_Developer__Backend__Assignment.pdf` — the assignment brief and **authoritative requirements source**. A PDF, so read it explicitly when requirements are in question rather than inferring from the notes.
 - `docs/first_draft.md` — the worked plan and **design of record**.
 - `docs/planning.md` — the developer's raw, out-of-order notes. High-level intent; deliberately names no projects. Source of the coding standards (§11) and the diagram list (§12).
-- `planning/` — numbered implementation steps, one file per step (`one_…`, `two-…`). **A `-done` suffix in the filename means that step is complete**; the current step is the highest-numbered file without one. Today: `two-domain.md`.
+- `planning/` — numbered implementation steps, one file per step (`one_…`, `two-…`). **A `-done` suffix in the filename means that step is complete**; the current step is the highest-numbered file without one. A step whose guidance stays useful after it ships may instead be folded into a nested `CLAUDE.md` in the project it describes — as the domain step was, into `src/Sygnia.Backend/Sygnia.Domain/CLAUDE.md`.
+
+**Nested `CLAUDE.md` files** live beside the code they govern and load automatically when working in that folder. `src/Sygnia.Backend/Sygnia.Domain/CLAUDE.md` holds the domain-layer rules; read it before touching that project rather than relying on the summary here.
 
 **Document precedence — the more specific document wins.** These three operate at descending levels of abstraction, and they have already drifted apart once:
 
