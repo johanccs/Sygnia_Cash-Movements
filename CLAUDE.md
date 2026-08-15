@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `docs/planning.md` (high-level intent) → `docs/first_draft.md` (design of record) → the current `planning/` step file (**overrides both**)
 
-When the step file contradicts `first_draft.md`, the step file is right and `first_draft.md` should be reconciled to it — not the other way round. Note that `first_draft.md` still cites `planning/one.md` by name in several places; those are historical references to the scaffold step, now `one_project-scaffold-done.md`.
+When the step file contradicts `first_draft.md`, the step file is right and `first_draft.md` should be reconciled to it — not the other way round. Note that `first_draft.md` still cites `planning/one.md` by name in several places; those are historical references to the scaffold step, now `planning/project-scaffold-done.md`.
 
 There are **no build/test/lint commands yet**. After scaffolding, replace this section with the real ones. The intended commands (from `first_draft.md`):
 
@@ -39,7 +39,7 @@ docker compose up -d                                  # SQL Server + Seq + Jaege
 - **Opt-in:** MediatR and its pipeline behaviours — out at the root scope, but a project's own nested `CLAUDE.md` may opt back in for itself (as `Sygnia.Application`'s does). A nested opt-in overrides this section for that project only, per the document-precedence rule above; record the opt-in and its reasoning in `SOLUTION.md`.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
 
-The front end was originally out of scope and the scaffold step (`planning/one_project-scaffold-done.md`) put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
+The front end was originally out of scope and the scaffold step (`planning/project-scaffold-done.md`) put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
 
 ## The two invariants that carry the solution
 

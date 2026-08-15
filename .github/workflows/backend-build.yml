@@ -1,0 +1,32 @@
+name: Backend Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/Sygnia.Backend/**'
+      - '.github/workflows/backend-build.yml'
+  pull_request:
+    paths:
+      - 'src/Sygnia.Backend/**'
+      - '.github/workflows/backend-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # global.json pins the SDK; letting setup-dotnet read it keeps this in sync
+      # automatically instead of duplicating the version here.
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: src/Sygnia.Backend/global.json
+
+      - name: Restore
+        run: dotnet restore
+        working-directory: src/Sygnia.Backend
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        working-directory: src/Sygnia.Backend
