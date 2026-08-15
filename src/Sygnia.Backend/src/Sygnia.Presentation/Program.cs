@@ -5,6 +5,7 @@ using Sygnia.Application;
 using Sygnia.Infrastructure;
 using Sygnia.Presentation;
 using Sygnia.Presentation.Services;
+using Grpc.AspNetCore.Web;
 
 const string ServiceName = "Sygnia.Presentation";
 
@@ -30,6 +31,10 @@ builder.Services.AddOpenTelemetry()
 
 // Add services to the container.
 builder.Services.AddGrpc(options => options.Interceptors.Add<ErrorInterceptor>());
+builder.Services.AddCors(o => o.AddPolicy("frontend", p => p
+    .WithOrigins("http://localhost:4200")
+    .AllowAnyHeader()
+    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding")));
 builder.Services.Register(); // Sygnia.Application: MediatR, validators, logging pipeline
 builder.Services.AddInfrastructure(
     builder.Configuration.GetConnectionString("SygniaCash")
@@ -39,8 +44,10 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseSerilogRequestLogging();
-app.MapGrpcService<GreeterService>();
-app.MapGrpcService<MovementGrpcService>();
+app.UseCors("frontend");
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+app.MapGrpcService<GreeterService>().EnableGrpcWeb();
+app.MapGrpcService<MovementGrpcService>().EnableGrpcWeb();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
 
 try
