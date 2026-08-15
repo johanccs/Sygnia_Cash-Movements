@@ -13,6 +13,7 @@ specific to the domain layer.
     - User
     - Movement
 3. Create methods to update account name and contactperson
+
 ```
 
 All three are implemented and covered by tests in

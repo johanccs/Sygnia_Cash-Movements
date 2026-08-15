@@ -168,6 +168,31 @@ public sealed class MovementTests
             null, Guid.NewGuid(), movedBy!, ValidOccurredAt));
 
     [Fact]
+    public void Constructor_WithMovedByLongerThanFifty_Throws()
+        => Assert.Throws<ArgumentException>(() => new Movement(
+            ValidAccountId, ValidExternalRef, ValidCurrency, ValidAmount, ValidOccurredAt,
+            null, Guid.NewGuid(), new string('X', 51), ValidOccurredAt));
+
+    // --- MovedDate: same UTC rule as OccurredAt ---
+
+    [Fact]
+    public void Constructor_WithDefaultMovedDate_Throws()
+        => Assert.Throws<ArgumentException>(() => new Movement(
+            ValidAccountId, ValidExternalRef, ValidCurrency, ValidAmount, ValidOccurredAt,
+            null, Guid.NewGuid(), ValidMovedBy, default));
+
+    [Fact]
+    public void Constructor_WithNonUtcMovedDate_Throws()
+        => Assert.Throws<ArgumentException>(() => new Movement(
+            ValidAccountId, ValidExternalRef, ValidCurrency, ValidAmount, ValidOccurredAt,
+            null, Guid.NewGuid(), ValidMovedBy,
+            new DateTime(2024, 7, 15, 10, 42, 31, DateTimeKind.Local)));
+
+    [Fact]
+    public void Constructor_SetsMovedDate()
+        => Assert.Equal(ValidOccurredAt, CreateValid().MovedDate);
+
+    [Fact]
     public void IsDeposit_ReflectsTheSignOfTheAmount()
     {
         Assert.True(CreateValid().IsDeposit);

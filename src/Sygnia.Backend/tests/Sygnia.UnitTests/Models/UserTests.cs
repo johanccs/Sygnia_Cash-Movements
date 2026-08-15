@@ -36,12 +36,20 @@ public sealed class UserTests
     public void Constructor_WithMissingName_Throws(string? name)
         => Assert.Throws<ArgumentException>(() => new User(ValidId, name!, ValidSurname));
 
+    [Fact]
+    public void Constructor_WithNameLongerThanFifty_Throws()
+        => Assert.Throws<ArgumentException>(() => new User(ValidId, new string('X', 51), ValidSurname));
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
     public void Constructor_WithMissingSurname_Throws(string? surname)
         => Assert.Throws<ArgumentException>(() => new User(ValidId, ValidName, surname!));
+
+    [Fact]
+    public void Constructor_WithSurnameLongerThanFifty_Throws()
+        => Assert.Throws<ArgumentException>(() => new User(ValidId, ValidName, new string('X', 51)));
 
     [Fact]
     public void FullName_JoinsNameAndSurname()

@@ -14,7 +14,9 @@
       "Bash(rm -rf dist)",
       "Bash(npx ng *)",
       "Bash(mkdir -p tests)",
-      "Bash(rm -f tests/Sygnia.UnitTests/UnitTest1.cs)"
+      "Bash(rm -f tests/Sygnia.UnitTests/UnitTest1.cs)",
+      "Bash(rm -rf tests/Sygnia.UnitTests/TestResults)",
+      "Bash(dotnet test *)"
     ]
   }
 }
