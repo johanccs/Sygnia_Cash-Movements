@@ -1,7 +1,7 @@
 using Sygnia.Domain.Models;
 using Sygnia.Infrastructure.Mapping;
 
-namespace Sygnia.Tests.Infrastructure;
+namespace Sygnia.Tests.Infrastructure.Unit;
 
 /// <summary>
 /// A silent field-mapping bug (e.g. swapped columns, a dropped property) would corrupt every

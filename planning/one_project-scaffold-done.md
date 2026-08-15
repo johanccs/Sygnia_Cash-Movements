@@ -30,3 +30,4 @@
 9. Create github actions:
     - as a ci/cd pipeline - only include build stage for both client and backend
     - separate the backend and client build into 2 files.
+10. Ensure all services, database access and grpc access contains async/await asyncronousity 

@@ -8,7 +8,15 @@ namespace Sygnia.Application.Interfaces;
 /// here — the implementation attempts the INSERT and turns SQL error 2627/2601 into the
 /// OK-replay / ALREADY_EXISTS outcomes described in the root CLAUDE.md; it never lets the SQL
 /// exception escape as an exception.
-/// TODO: implement in Sygnia.Infrastructure against the EF Core DbContext (not yet created).
+/// <para>
+/// One extra error code beyond the root CLAUDE.md's status-mapping table:
+/// <c>movement.conflict_unresolved</c>, from <c>Sygnia.Infrastructure.MovementRepository</c>.
+/// It fires when a key conflict was detected but the row can't be read back afterwards (a
+/// concurrent delete, or — for a transfer — the leg genuinely never existed because the *other*
+/// leg was the actual conflict and the pair rolled back together). Whoever builds the gRPC
+/// error interceptor needs to map this; <c>INTERNAL</c> is the reasonable default, since it
+/// represents an unresolvable state rather than an expected business outcome.
+/// </para>
 /// </summary>
 public interface IMovementRepository
 {

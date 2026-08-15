@@ -12,6 +12,15 @@ public sealed class SygniaDbContext(DbContextOptions<SygniaDbContext> options) :
 
     public DbSet<UserEntity> Users => Set<UserEntity>();
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        // SQL Server's datetime2 has no concept of DateTimeKind — every value comes back
+        // Unspecified. Every DateTime this project stores is UTC (enforced by the domain
+        // constructors before it ever reaches here), so it's safe to stamp Utc back on read
+        // rather than let Movement's constructor guard reject it as non-UTC.
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AccountEntity>(entity =>

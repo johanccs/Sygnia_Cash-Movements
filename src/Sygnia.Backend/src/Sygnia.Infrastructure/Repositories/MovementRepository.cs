@@ -12,7 +12,9 @@ namespace Sygnia.Infrastructure.Repositories;
 /// Idempotency lives here, not in application code: every write attempts the INSERT first and
 /// only reacts to SQL error 2627/2601 afterwards — no SELECT-then-INSERT, which would lose the
 /// race the brief tests for. A single <c>SaveChangesAsync</c> call is one implicit transaction,
-/// so <see cref="AddTransferAsync"/> writes both legs atomically for free.
+/// so <see cref="AddTransferAsync"/> writes both legs atomically for free — which also means a
+/// conflict on either leg rolls the whole pair back, so the other leg reading back "not found"
+/// afterwards is expected, not itself a conflict. See <see cref="ResolveTransferConflictAsync"/>.
 /// </summary>
 internal sealed class MovementRepository(SygniaDbContext db) : IMovementRepository
 {
@@ -32,7 +34,8 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         catch (DbUpdateException ex) when (ex.IsDuplicateKeyViolation())
         {
             db.Entry(entity).State = EntityState.Detached;
-            return await ResolveConflictAsync(movement, cancellationToken);
+            var stored = await FindStoredAsync(movement.AccountId, movement.ExternalRef, cancellationToken);
+            return ResolveSingleLegConflict(movement, stored);
         }
     }
 
@@ -53,37 +56,66 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         catch (DbUpdateException ex) when (ex.IsDuplicateKeyViolation())
         {
             db.ChangeTracker.Clear();
-
-            var debitResult = await ResolveConflictAsync(debit, cancellationToken);
-            if (debitResult.IsFailure)
-            {
-                return Result<(Movement, Movement)>.Failure(debitResult.Error);
-            }
-
-            var creditResult = await ResolveConflictAsync(credit, cancellationToken);
-            return creditResult.IsFailure
-                ? Result<(Movement, Movement)>.Failure(creditResult.Error)
-                : Result<(Movement, Movement)>.Success((debitResult.Value, creditResult.Value));
+            return await ResolveTransferConflictAsync(debit, credit, cancellationToken);
         }
     }
 
     /// <summary>
-    /// Reads the stored row back for a key that just failed to insert, and compares it against
-    /// what the caller attempted: identical amount/currency/occurredAt is an idempotent replay
-    /// (OK, the stored row); anything else is ALREADY_EXISTS naming the conflicting fields.
+    /// Resolves both legs independently before deciding anything — never short-circuits on
+    /// whichever leg is checked first. Because the failed <c>SaveChangesAsync</c> rolled the
+    /// whole pair back, a leg reading back "not found" only means *that* leg was never the
+    /// cause of the conflict; it must not be reported as one.
     /// </summary>
-    private async Task<Result<Movement>> ResolveConflictAsync(Movement attempted, CancellationToken cancellationToken)
+    private async Task<Result<(Movement Debit, Movement Credit)>> ResolveTransferConflictAsync(
+        Movement debit,
+        Movement credit,
+        CancellationToken cancellationToken)
     {
-        var stored = await db.Movements
-            .AsNoTracking()
-            .SingleOrDefaultAsync(
-                m => m.AccountId == attempted.AccountId && m.ExternalRef == attempted.ExternalRef,
-                cancellationToken);
+        var storedDebit = await FindStoredAsync(debit.AccountId, debit.ExternalRef, cancellationToken);
+        var storedCredit = await FindStoredAsync(credit.AccountId, credit.ExternalRef, cancellationToken);
 
+        var debitConflicts = storedDebit is null ? null : DescribeConflicts(debit, storedDebit);
+        var creditConflicts = storedCredit is null ? null : DescribeConflicts(credit, storedCredit);
+
+        // A leg that was actually found with mismatched fields is a genuine, reportable
+        // conflict regardless of what the other leg looks like.
+        var conflictMessages = new List<string>();
+        if (debitConflicts is { Count: > 0 })
+        {
+            conflictMessages.Add($"debit {string.Join("/", debitConflicts)}");
+        }
+
+        if (creditConflicts is { Count: > 0 })
+        {
+            conflictMessages.Add($"credit {string.Join("/", creditConflicts)}");
+        }
+
+        if (conflictMessages.Count > 0)
+        {
+            return Result<(Movement, Movement)>.Failure(new Error(
+                "movement.already_exists",
+                $"Transfer '{debit.RefNr}' already exists with a different {string.Join(", ", conflictMessages)}."));
+        }
+
+        // No mismatches found. Either both legs are an identical replay (the normal case for
+        // the same transfer resubmitted), or one leg was never written at all — which cannot
+        // be resolved as a replay, since this repository never writes a transfer's legs apart.
+        if (storedDebit is not null && storedCredit is not null)
+        {
+            return Result<(Movement, Movement)>.Success((storedDebit.ToDomain(), storedCredit.ToDomain()));
+        }
+
+        var missingLeg = storedDebit is null ? "debit" : "credit";
+        return Result<(Movement, Movement)>.Failure(new Error(
+            "movement.conflict_unresolved",
+            $"Transfer '{debit.RefNr}' hit a key conflict but its {missingLeg} leg could not be read back."));
+    }
+
+    private static Result<Movement> ResolveSingleLegConflict(Movement attempted, MovementEntity? stored)
+    {
         if (stored is null)
         {
-            // The key we just failed to insert is now missing — a concurrent delete, or this
-            // conflict belongs to the other leg of a transfer. Either way, this is not a
+            // The key we just failed to insert is now missing — a concurrent delete. Not a
             // conflict we can resolve as a replay.
             return Result<Movement>.Failure(new Error(
                 "movement.conflict_unresolved",
@@ -91,15 +123,17 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         }
 
         var conflicts = DescribeConflicts(attempted, stored);
-        if (conflicts.Count == 0)
-        {
-            return Result<Movement>.Success(stored.ToDomain());
-        }
-
-        return Result<Movement>.Failure(new Error(
-            "movement.already_exists",
-            $"'{attempted.ExternalRef}' already exists for '{attempted.AccountId}' with a different {string.Join(", ", conflicts)}."));
+        return conflicts.Count == 0
+            ? Result<Movement>.Success(stored.ToDomain())
+            : Result<Movement>.Failure(new Error(
+                "movement.already_exists",
+                $"'{attempted.ExternalRef}' already exists for '{attempted.AccountId}' with a different {string.Join(", ", conflicts)}."));
     }
+
+    private Task<MovementEntity?> FindStoredAsync(string accountId, string externalRef, CancellationToken cancellationToken) =>
+        db.Movements
+            .AsNoTracking()
+            .SingleOrDefaultAsync(m => m.AccountId == accountId && m.ExternalRef == externalRef, cancellationToken);
 
     private static List<string> DescribeConflicts(Movement attempted, MovementEntity stored)
     {

@@ -18,3 +18,6 @@
     - initial catalog: sygnia_cash
 9. Ensure that when movement operation is performed, full acid compliance
 10. Use superpowers to do PR reviews
+11. Write unit tests and integration tests
+12. Use lazy loading in linq statements as much as possible.
+13. Infrastructure / Application must convert between domain models and efcore entities
