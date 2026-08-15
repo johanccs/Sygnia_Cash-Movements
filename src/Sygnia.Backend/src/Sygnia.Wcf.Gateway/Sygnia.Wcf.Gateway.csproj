@@ -27,6 +27,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--
+      movements.proto hardcodes `option csharp_namespace = "Sygnia.Presentation";`. Compiling it
+      here means this project independently generates its own full copy of the Sygnia.Presentation.*
+      message/client types, duplicating what Sygnia.Presentation.dll already exports under the same
+      namespace. Nothing breaks today because no project references both this assembly and
+      Sygnia.Presentation, but this project must NEVER be referenced (directly or transitively) by
+      anything that also references Sygnia.Presentation — doing so collides on CS0433
+      (ambiguous type) for every Sygnia.Presentation.* type. See CLAUDE.md's Known traps.
+    -->
     <Protobuf Include="..\Sygnia.Presentation\Protos\movements.proto" GrpcServices="Client" Link="Protos\movements.proto" />
   </ItemGroup>
 

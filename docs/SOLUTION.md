@@ -151,7 +151,11 @@ rather than generating a service reference.
 
 **Simplification:** no retry/resilience policy on either hop (WCF→gRPC or WPF→WCF) — a single
 attempt, with the failure surfaced to the user. No authentication on the NetTcp endpoint,
-matching the rest of the take-home's unauthenticated surface.
+matching the rest of the take-home's unauthenticated surface. Note that `SecurityMode.None`
+disables NetTcp *transport encryption* as well as authentication — not just "no
+authentication" — so traffic between `Sygnia.WpfClient` and `Sygnia.Wcf.Gateway` is plaintext
+on the wire. A real deployment would use `SecurityMode.Transport` with Windows authentication
+instead of `SecurityMode.None`.
 
 ## Deliberate scope omissions
 

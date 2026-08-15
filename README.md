@@ -76,6 +76,11 @@ Traces flow to Jaeger, structured logs to Seq and the console.
 calls into the same backend as the gRPC API — by acting as a gRPC client itself — so both entry
 points return identical balances for identical data.
 
+**Prerequisite:** run `dotnet dev-certs https --trust` on this machine first, if you haven't
+already. The gateway's gRPC client uses `WinHttpHandler`, which validates the gRPC host's
+ASP.NET Core dev certificate like any other TLS client — without a trusted dev cert the
+handshake fails, which looks like a code bug rather than a missing local cert.
+
 With the gRPC host already running (see above), in a second terminal:
 
 ```bash

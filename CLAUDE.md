@@ -118,6 +118,7 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 - Testcontainers needs a running Docker daemon — verify Docker works *before* building the integration harness, not after.
 - `private sealed` types cannot be tested directly from another assembly. Test through the public interface (preferred), or use `internal sealed` with `[assembly: InternalsVisibleTo]` where a test genuinely needs the concrete type.
 - The WCF gateway mixes a legacy `.csproj` into an SDK-style solution and is Windows-only.
+- `Sygnia.Wcf.Gateway` compiles `movements.proto` independently of `Sygnia.Presentation` (its own `<Protobuf>` item, `GrpcServices="Client"`), but the proto hardcodes `option csharp_namespace = "Sygnia.Presentation";`. Both projects therefore export their own full copy of the `Sygnia.Presentation.*` message/client types. Nothing breaks while no project references both assemblies, but never let anything reference `Sygnia.Wcf.Gateway` and `Sygnia.Presentation` together (directly or transitively) — every shared type collides on CS0433 (ambiguous reference).
 
 ## Workflow
 
