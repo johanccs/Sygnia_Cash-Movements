@@ -47,7 +47,7 @@
                 - public getters + private setters
                 - constructor with guard clauses - ensure least permission
                 - validation - fluent validations
-        - persistence
+        - infrastructure
             - ef core ? 
 11. standards - 
     - for each service -> create and implement an interface

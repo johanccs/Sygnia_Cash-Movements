@@ -7,9 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Greenfield — no code exists yet.** `src/` is empty; there is no solution file or build tooling. Everything currently in the repo is planning material:
 
 - `docs/Senior_C___NET_Developer__Backend__Assignment.pdf` — the assignment brief and **authoritative requirements source**. A PDF, so read it explicitly when requirements are in question rather than inferring from the notes.
-- `docs/first_draft.md` — the worked plan. **This is the current design of record** and supersedes `planning.md` wherever they disagree.
-- `docs/planning.md` — the developer's raw, out-of-order notes. Source of the coding standards (§11) and the diagram list (§12).
-- `planning/one.md` — the step pointer for the current implementation step.
+- `docs/first_draft.md` — the worked plan and **design of record**.
+- `docs/planning.md` — the developer's raw, out-of-order notes. High-level intent; deliberately names no projects. Source of the coding standards (§11) and the diagram list (§12).
+- `planning/one.md` — the concrete implementation step now in flight.
+
+**Document precedence — the more specific document wins.** These three operate at descending levels of abstraction, and they have already drifted apart once:
+
+`docs/planning.md` (high-level intent) → `docs/first_draft.md` (design of record) → `planning/one.md` (current step, **overrides both**)
+
+When `one.md` contradicts `first_draft.md`, `one.md` is right and `first_draft.md` should be reconciled to it — not the other way round.
 
 There are **no build/test/lint commands yet**. After scaffolding, replace this section with the real ones. The intended commands (from `first_draft.md`):
 
@@ -17,25 +23,28 @@ There are **no build/test/lint commands yet**. After scaffolding, replace this s
 dotnet build && dotnet test
 dotnet test --filter FullyQualifiedName~Concurrent   # the idempotency-under-race test
 dotnet test --filter FullyQualifiedName~Statement    # the 50k-row streaming test
-dotnet run --project src/CashMovements.Grpc
-docker compose up -d                                  # SQL Server + Seq + Jaeger + host
+dotnet run --project src/sygnia.backend/sygnia.presentation
+ng build                                              # from src/sygnia.frontend
+docker compose up -d                                  # SQL Server + Seq + Jaeger + host + SPA
 ```
 
 ## Scope: what is in and what was deliberately cut
 
-`planning.md` lists more than the brief asks for. `first_draft.md` cut it back — do not reintroduce these without being asked:
+`planning.md` lists more than the brief asks for, and the scope has been narrowed to the following. Do not add anything from the Out list without being asked:
 
-- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
-- **Out:** Redis, Swagger, MediatR and its pipeline behaviours, the UI component layer, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
+- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`sygnia.frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
+- **Out:** Redis, Swagger, MediatR and its pipeline behaviours, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
+
+The front end was originally out of scope and `planning/one.md` put it back in. Sequencing still matters: **the backend core must be green before frontend work starts**, because the core is what the assignment grades and the front end adds no marks of its own. Ask before dropping any scope item rather than deciding silently.
 
 ## The two invariants that carry the solution
 
 Most of the code is plumbing. These two are what the assignment grades, and both fail *silently* if violated.
 
-**1. Idempotency lives in the database, not in C#.** The composite primary key `(AccountId, ExternalRef)` **is** the idempotency mechanism. Any `SELECT`-then-`INSERT` in application code loses the race the brief explicitly tests. The flow is: attempt the INSERT → on SQL error 2627/2601, read the stored row back and compare amount/currency/occurredAt → identical means idempotent replay (return the stored row, OK); different means `ALREADY_EXISTS` naming the conflicting fields. The SQL exception is caught at the persistence boundary and never escapes it as an exception — it becomes a `Result`.
+**1. Idempotency lives in the database, not in C#.** The composite primary key `(AccountId, ExternalRef)` **is** the idempotency mechanism. Any `SELECT`-then-`INSERT` in application code loses the race the brief explicitly tests. The flow is: attempt the INSERT → on SQL error 2627/2601, read the stored row back and compare amount/currency/occurredAt → identical means idempotent replay (return the stored row, OK); different means `ALREADY_EXISTS` naming the conflicting fields. The SQL exception is caught at the infrastructure boundary and never escapes it as an exception — it becomes a `Result`.
 
-**2. Statements stream end to end, or they are wrong.** A single `.ToListAsync()` anywhere in the statement path defeats the requirement while every functional test still passes. The path is EF Core `AsAsyncEnumerable()` + `AsNoTracking()` → repository returns `IAsyncEnumerable<Movement>` → handler yields rows while accumulating a running total in one `decimal` → gRPC server streaming `WriteAsync` per row → client reads one row at a time. The 50k-row memory test is the only guard against regression here.
+**2. Statements stream end to end, or they are wrong.** A single `.ToListAsync()` anywhere in the statement path defeats the requirement while every functional test still passes. The path is EF Core `AsAsyncEnumerable()` + `AsNoTracking()` → repository returns `IAsyncEnumerable<Movement>` → handler yields rows while accumulating a running total in one `decimal` → gRPC server streaming `WriteAsync` per row → client reads one row at a time. The 50k-row memory test is the only guard against regression here. The Angular side is bound by the same rule: render rows as they arrive, never collect the stream into an array first.
 
 ## Architecture
 
@@ -43,17 +52,28 @@ Clean Architecture, dependencies inward only. Each project exposes public interf
 
 ```
 src/
-├─ CashMovements.Domain/       no dependencies. Movement, Account, Result<T>, Error. AddDomain()
-├─ CashMovements.Application/  ports (IMovementRepository, IBalanceReader, IStatementReader),
-│                              private sealed handlers, FluentValidation. AddApplication()
-├─ CashMovements.Persistence/  DbContext + composite-key config, repositories incl. the 2627
-│                              catch. AddPersistence(connectionString)
-├─ CashMovements.Grpc/         .NET 8 host + composition root. Protos/, ErrorInterceptor,
-│                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
-└─ CashMovements.Wcf.Gateway/  .NET Framework 4.8 — built LAST
+├─ sygnia.frontend/                Angular 18 SPA — gRPC-Web clients
+└─ sygnia.backend/                 .NET 8 solution
+    ├─ sygnia.domain/              no dependencies. Movement, Account, Result<T>, Error. AddDomain()
+    ├─ sygnia.application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
+    │                              private sealed handlers, FluentValidation. AddApplication()
+    ├─ sygnia.infrastructure/      DbContext + composite-key config, repositories incl. the 2627
+    │                              catch. AddInfrastructure(connectionString)
+    ├─ sygnia.presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
+    │                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
+    └─ sygnia.wcf.gateway/         .NET Framework 4.8 — built LAST
 tests/
-├─ CashMovements.UnitTests/         domain guards, balance math, Result mapping
-└─ CashMovements.IntegrationTests/  Testcontainers — real SQL Server, not in-memory
+├─ sygnia.unittests/               domain guards, balance math, Result mapping
+└─ sygnia.integrationtests/        Testcontainers — real SQL Server, not in-memory
+```
+
+Reference direction — easiest thing to get wrong in a scaffold, hardest to unpick later:
+
+```
+presentation → application → domain
+infrastructure → application → domain
+presentation → infrastructure   (composition root only, to call AddInfrastructure)
+domain → nothing
 ```
 
 Why `private sealed` matters structurally: a private implementation cannot be named from another assembly, so the composition root *cannot* register it. Registration must happen inside the owning layer — which is exactly what the one-`Add<Layer>()`-per-project rule provides.
@@ -76,6 +96,7 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 - Transfers are one atomic `Transfer` RPC writing both legs in a single transaction.
 - Money crosses the gRPC wire as a **string** decimal (`"12500.00"`), not a `double` — protobuf has no decimal type and `double` corrupts cents. Timestamps are `google.protobuf.Timestamp`, UTC.
 - Status mapping, done once in the interceptor and service and nowhere else: validation → `INVALID_ARGUMENT`; unknown account → `NOT_FOUND`; same key + same fields → `OK` with the stored movement; same key + different fields → `ALREADY_EXISTS` plus the conflicting field names; anything unexpected → `INTERNAL`.
+- **The front end forces gRPC-Web.** A browser cannot speak native gRPC (no access to HTTP/2 trailers), so `sygnia.presentation` must enable `Grpc.AspNetCore.Web` — `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint — and CORS for the Angular origin. gRPC-Web *does* support server streaming (it drops only client and bidirectional streaming), so `StreamStatement` survives the browser hop intact.
 
 ## Known traps
 
@@ -85,6 +106,9 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 
 ## Workflow
 
-1. ALWAYS create a new local git branch before starting a feature or bug fix. NEVER commit directly to `main` or make code changes directly on `main`.
-2. When a feature is complete, open a PR before merging to `main`.
-3. Read `planning/one.md` for the current step.
+1. **Always create a local branch before starting** a feature or bug fix.
+2. **NEVER commit to `main` or make code changes on `main`.**
+3. When the feature is complete, open a PR.
+4. **The PR must be approved before merging.** Approval is the user's — never self-merge. Open the PR, report it, and stop there; the user reviews, approves, and says when to merge.
+5. Once merged, delete the feature or bug branch (local and remote).
+6. Read `planning/one.md` for the current step.
