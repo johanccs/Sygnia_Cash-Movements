@@ -1,0 +1,35 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "@1Mops4moa"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "true" # local dev only — no admin password needed
+    ports:
+      - "5341:80" # UI + ingestion, matches Seq:ServerUrl in appsettings.json
+    volumes:
+      - seq-data:/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # UI
+      - "4317:4317"   # OTLP gRPC, matches Otlp:Endpoint in appsettings.json
+
+  # host and SPA services are added once Sygnia.Presentation and Sygnia.Frontend have
+  # Dockerfiles of their own — see the root CLAUDE.md's intended `docker compose up -d`.
+
+volumes:
+  sqlserver-data:
+  seq-data:

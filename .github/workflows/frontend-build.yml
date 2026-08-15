@@ -7,6 +7,7 @@ on:
       - 'src/Sygnia.Frontend/**'
       - '.github/workflows/frontend-build.yml'
   pull_request:
+    branches: [main]
     paths:
       - 'src/Sygnia.Frontend/**'
       - '.github/workflows/frontend-build.yml'
