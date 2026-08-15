@@ -1,0 +1,33 @@
+<Project>
+
+  <!--
+    Centralised build properties for every project in the sygnia.backend solution.
+    Adding a project picks these up automatically — do not repeat them in a .csproj.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      The coding standards require guard clauses and readonly domain properties.
+      Warnings-as-errors keeps that discipline enforced by the build rather than by
+      review: a nullable violation fails CI instead of reaching a reviewer.
+    -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Company>Sygnia</Company>
+    <Product>Cash Movements</Product>
+    <Authors>Sygnia</Authors>
+    <NeutralLanguage>en-ZA</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

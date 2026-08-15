@@ -112,3 +112,5 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 4. **The PR must be approved before merging.** Approval is the user's — never self-merge. Open the PR, report it, and stop there; the user reviews, approves, and says when to merge.
 5. Once merged, delete the feature or bug branch (local and remote).
 6. Read `planning/one.md` for the current step.
+7. For .net solution - implement Directory.Build for centralization
+8. Add node_modules to .gitignore

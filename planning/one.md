@@ -13,3 +13,5 @@
                 - sygnia.domain
                 - sygnia.infrastructure
 3. Compile and build projects
+4. For .net solution - implement Directory.Build and Directory.Packages for centralization
+5. Add node_modules to .gitignore
