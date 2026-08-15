@@ -37,3 +37,4 @@ not double-count. - Should account for idempotency and handled in Sygnia.Applica
     - logging in mediatr pipeline
 5. Add a AppModuleExtensions static class with a Register extension method for IServiceProvider services if there are any DI registration needed.
 6. For constructors - use primary ctor
+7. Ensure that when movement operation is performed, full acid compliance

@@ -2,9 +2,12 @@
     - Alternatives
         - Modular monoliths
         - Vertical slices
+        - For more complex applications use eventsourcing
+        - If application are to be broken into microservices use event driven architecture
 
 2. Orm - ef core 8
-3.
+
+
 
 ## Deliberate scope omissions
 

@@ -27,3 +27,6 @@
     - Jaeger to test tracing
 8. Add editor.config file with theses entries:
     look at "X:\Tutorials\DomeTrain\01_ModularMonoliths\Intro\src\.editorconfig" for content.
+9. Create github actions:
+    - as a ci/cd pipeline - only include build stage for both client and backend
+    - separate the backend and client build into 2 files.

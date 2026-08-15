@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Sygnia.Domain\Sygnia.Domain.csproj" />
     <ProjectReference Include="..\..\src\Sygnia.Application\Sygnia.Application.csproj" />
+    <ProjectReference Include="..\..\src\Sygnia.Infrastructure\Sygnia.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
