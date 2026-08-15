@@ -32,9 +32,9 @@ public sealed class SubmitMovementCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_InvalidCommand_ReturnsFailureWithoutTouchingRepository()
+    public async Task Handle_InvalidCommand_ReturnsValidationFailure()
     {
-        var (handler, repository) = CreateSut();
+        var (handler, _) = CreateSut();
         var command = CreateCommand(amount: 0m); // zero amount is invalid
 
         var result = await handler.Handle(command, CancellationToken.None);

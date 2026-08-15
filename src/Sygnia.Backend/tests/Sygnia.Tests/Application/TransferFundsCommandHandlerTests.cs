@@ -32,12 +32,28 @@ public sealed class TransferFundsCommandHandlerTests
         Assert.Equal(500.00m, result.Value.Credit.Amount);
         Assert.Equal("ACC-001", result.Value.Debit.AccountId);
         Assert.Equal("ACC-002", result.Value.Credit.AccountId);
+        // Each leg needs its own ExternalRef — both accounts would otherwise share one
+        // (AccountId, ExternalRef) idempotency key derived from the same command.
+        Assert.Equal("MOV-20240715-01-DR", result.Value.Debit.ExternalRef);
+        Assert.Equal("MOV-20240715-01-CR", result.Value.Credit.ExternalRef);
     }
 
     [Fact]
     public async Task Handle_UnknownFromAccount_ReturnsNotFoundFailure()
     {
         var repository = new FakeMovementRepository { ExistingAccountIds = { "ACC-002" } };
+        var handler = new TransferFundsCommandHandler(repository, new TransferFundsCommandValidator());
+
+        var result = await handler.Handle(CreateCommand(), CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal("account.not_found", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task Handle_UnknownToAccount_ReturnsNotFoundFailure()
+    {
+        var repository = new FakeMovementRepository { ExistingAccountIds = { "ACC-001" } };
         var handler = new TransferFundsCommandHandler(repository, new TransferFundsCommandValidator());
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);

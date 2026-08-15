@@ -33,7 +33,20 @@ public sealed class GetStatementQueryHandlerTests
     }
 
     [Fact]
-    public async Task Handle_KnownAccount_StreamsRunningTotalWithoutBuffering()
+    public async Task Handle_InvalidDateRange_YieldsSingleErrorLine()
+    {
+        var handler = new GetStatementQueryHandler(new FakeStatementReader(), new GetStatementQueryValidator());
+        var query = new GetStatementQuery(AccountId, DateTime.UtcNow, DateTime.UtcNow.AddDays(-1)); // From after To
+
+        var lines = await Collect(handler.Handle(query, CancellationToken.None));
+
+        var line = Assert.Single(lines);
+        Assert.NotNull(line.Error);
+        Assert.Equal("statement.invalid", line.Error!.Code);
+    }
+
+    [Fact]
+    public async Task Handle_KnownAccount_AccumulatesRunningTotalAcrossMovements()
     {
         var day1 = new DateTime(2024, 7, 15, 0, 0, 0, DateTimeKind.Utc);
         var day2 = day1.AddDays(1);
