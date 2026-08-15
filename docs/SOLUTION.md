@@ -10,21 +10,19 @@ implementation cannot be registered from outside the layer that owns it — that
 what makes the one-`Add<Layer>()`-per-project rule actually hold.
 
 **Alternatives considered:**
-- **Modular monolith** — reasonable for this scope, but Clean Architecture's explicit
-  dependency direction made the two invariants (below) easier to defend in code review: a
-  reviewer can see that `Sygnia.Domain` cannot reach EF Core, so idempotency logic cannot leak
-  out of the infrastructure boundary.
-- **Vertical slices** — would suit this size well too; not chosen mainly because the layered
-  structure maps directly onto the assignment's own task breakdown (domain/persistence → RPC
-  surface → optional gateway).
-- **Event sourcing** — deliberately not used. A `Movements` table with a computed balance is
-  the correct level of complexity for this scope; event sourcing would add a projection/replay
-  concern the brief doesn't ask for.
-- **Microservices / event-driven** — noted as a *future* direction if this ever splits into
-  independently deployable services, not a current-scope decision.
+- Modular monoliths
+- Vertical slices
+- For more complex applications, use event sourcing
+- If the application is to be broken into microservices, use event-driven architecture
 
-**ORM:** EF Core 8 against SQL Server, `AsNoTracking()` for every read path, `IAsyncEnumerable`
-for the statement query. See `Sygnia.Infrastructure/CLAUDE.md` for the layer-specific rules.
+None of these were chosen for the current scope. Clean Architecture's explicit dependency
+direction made the two invariants below easier to defend in review: a reviewer can see that
+`Sygnia.Domain` cannot reach EF Core, so idempotency logic cannot leak out of the infrastructure
+boundary — and the layered structure maps directly onto the assignment's own task breakdown
+(domain/persistence → RPC surface → optional gateway).
+
+**ORM:** EF Core 8. See `Sygnia.Infrastructure/CLAUDE.md` for the layer-specific rules
+(`AsNoTracking()` for every read path, `IAsyncEnumerable` for the statement query).
 
 **CQRS via MediatR** — opted back in for `Sygnia.Application` only (out at the solution root;
 see [Deliberate scope omissions](#deliberate-scope-omissions)) — for loose coupling between the
@@ -147,14 +145,16 @@ caller. These aren't in tension — see `Sygnia.Domain/CLAUDE.md` for the full r
 - **Optional extensions** (batch submission, file-format statement export, a progress-showing
   client utility) — not built; all explicitly "only if time allows" in the brief.
 
-## Future considerations
+## Things to consider
 
-- **Maker/checker** on the movement use case, so the person who initiates a movement cannot
-  also approve it.
-- **Secret management** — move the connection string out of `appsettings.json` into user
-  secrets locally and a pipeline-managed secret store in deployment, rotated periodically.
-- **CQRS was chosen over injecting repositories directly into the gRPC service** for the
-  decoupling MediatR gives between transport and business logic — the simpler alternative
-  (inject `IMovementRepository` etc. straight into `MovementGrpcService`) was considered and
-  rejected specifically because it would blur the "thin transport, no business logic" line the
-  `Presentation` layer is meant to hold.
+3. As the application evolves, the next step is to ensure there is a maker/checker procedure
+   in the movement use case. This is to ensure the person who initiated the move cannot approve
+   it. We need a second person to approve.
+4. Currently the DB details are in `appsettings.json` for simplicity, but in a real-world
+   project developing locally would make use of application secrets and not `appsettings.json`.
+   The credentials would be overwritten in deployment pipelines with values from Azure DevOps or
+   AWS Secret Manager. These could also be rotated on a weekly basis to improve security.
+5. Use CQRS for loose coupling. Could have injected services directly into the controllers to
+   execute business rules instead — that's the alternative that was considered and rejected,
+   specifically because it would blur the "thin transport, no business logic" line the
+   `Presentation` layer is meant to hold.
