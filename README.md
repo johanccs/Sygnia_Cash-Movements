@@ -86,6 +86,20 @@ It listens on `net.tcp://localhost:8090/BalanceService`. Both addresses (the gRP
 and the NetTcp address it listens on) are configurable in
 `src/Sygnia.Backend/src/Sygnia.Wcf.Gateway/App.config`.
 
+### Run the WPF client (optional)
+
+`Sygnia.WpfClient` is a minimal desktop app that queries the WCF gateway's `GetBalance`
+operation — the "legacy tool" side of the demo. Windows only.
+
+With the gRPC host and the WCF gateway both running (see above), in a third terminal:
+
+```bash
+dotnet run --project src/Sygnia.WpfClient
+```
+
+Enter an account ID (e.g. `ACC-001`) and click **Get Balance**. The gateway address is
+configurable in `src/Sygnia.WpfClient/App.config`.
+
 ### 5. Run the frontend (optional)
 
 ```bash
