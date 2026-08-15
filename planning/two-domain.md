@@ -4,3 +4,4 @@
     - Account
     - User
     - Movement
+3. Create methods to update account name and contactperson
