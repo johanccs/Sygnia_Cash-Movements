@@ -23,8 +23,8 @@ There are **no build/test/lint commands yet**. After scaffolding, replace this s
 dotnet build && dotnet test
 dotnet test --filter FullyQualifiedName~Concurrent   # the idempotency-under-race test
 dotnet test --filter FullyQualifiedName~Statement    # the 50k-row streaming test
-dotnet run --project src/sygnia.backend/sygnia.presentation
-ng build                                              # from src/sygnia.frontend
+dotnet run --project src/Sygnia.Backend/Sygnia.Presentation
+ng build                                              # from src/Sygnia.Frontend
 docker compose up -d                                  # SQL Server + Seq + Jaeger + host + SPA
 ```
 
@@ -32,7 +32,7 @@ docker compose up -d                                  # SQL Server + Seq + Jaege
 
 `planning.md` lists more than the brief asks for, and the scope has been narrowed to the following. Do not add anything from the Out list without being asked:
 
-- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`sygnia.frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
+- **In:** gRPC service (submit / transfer / balance / streaming statement), SQL Server via EF Core, Testcontainers integration tests, an **Angular 18 front end** (`Sygnia.Frontend`), Serilog→Seq, OpenTelemetry→Jaeger, docker-compose, `README.md` + `SOLUTION.md`.
 - **Out:** Redis, Swagger, MediatR and its pipeline behaviours, GitHub Pages. Each is recorded in `SOLUTION.md` as a deliberate omission.
 - **Last, and droppable:** the .NET Framework 4.8 WCF gateway (NetTcp, one `GetBalance` operation acting as a gRPC client). Windows-only; sequenced last so it cannot block the core.
 
@@ -52,19 +52,19 @@ Clean Architecture, dependencies inward only. Each project exposes public interf
 
 ```
 src/
-├─ sygnia.frontend/                Angular 18 SPA — gRPC-Web clients
-└─ sygnia.backend/                 .NET 8 solution
-    ├─ sygnia.domain/              no dependencies. Movement, Account, Result<T>, Error. AddDomain()
-    ├─ sygnia.application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
+├─ Sygnia.Frontend/                Angular 18 SPA — gRPC-Web clients
+└─ Sygnia.Backend/                 .NET 8 solution
+    ├─ Sygnia.Domain/              no dependencies. Movement, Account, Result<T>, Error. AddDomain()
+    ├─ Sygnia.Application/         ports (IMovementRepository, IBalanceReader, IStatementReader),
     │                              private sealed handlers, FluentValidation. AddApplication()
-    ├─ sygnia.infrastructure/      DbContext + composite-key config, repositories incl. the 2627
+    ├─ Sygnia.Infrastructure/      DbContext + composite-key config, repositories incl. the 2627
     │                              catch. AddInfrastructure(connectionString)
-    ├─ sygnia.presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
+    ├─ Sygnia.Presentation/        gRPC host + composition root. Protos/, ErrorInterceptor,
     │                              Result<T> → StatusCode mapping. Program.cs is four AddX() calls
-    └─ sygnia.wcf.gateway/         .NET Framework 4.8 — built LAST
+    └─ Sygnia.Wcf.Gateway/         .NET Framework 4.8 — built LAST
 tests/
-├─ sygnia.unittests/               domain guards, balance math, Result mapping
-└─ sygnia.integrationtests/        Testcontainers — real SQL Server, not in-memory
+├─ Sygnia.UnitTests/               domain guards, balance math, Result mapping
+└─ Sygnia.IntegrationTests/        Testcontainers — real SQL Server, not in-memory
 ```
 
 Reference direction — easiest thing to get wrong in a scaffold, hardest to unpick later:
@@ -96,7 +96,7 @@ Why `private sealed` matters structurally: a private implementation cannot be na
 - Transfers are one atomic `Transfer` RPC writing both legs in a single transaction.
 - Money crosses the gRPC wire as a **string** decimal (`"12500.00"`), not a `double` — protobuf has no decimal type and `double` corrupts cents. Timestamps are `google.protobuf.Timestamp`, UTC.
 - Status mapping, done once in the interceptor and service and nowhere else: validation → `INVALID_ARGUMENT`; unknown account → `NOT_FOUND`; same key + same fields → `OK` with the stored movement; same key + different fields → `ALREADY_EXISTS` plus the conflicting field names; anything unexpected → `INTERNAL`.
-- **The front end forces gRPC-Web.** A browser cannot speak native gRPC (no access to HTTP/2 trailers), so `sygnia.presentation` must enable `Grpc.AspNetCore.Web` — `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint — and CORS for the Angular origin. gRPC-Web *does* support server streaming (it drops only client and bidirectional streaming), so `StreamStatement` survives the browser hop intact.
+- **The front end forces gRPC-Web.** A browser cannot speak native gRPC (no access to HTTP/2 trailers), so `Sygnia.Presentation` must enable `Grpc.AspNetCore.Web` — `UseGrpcWeb()` plus `EnableGrpcWeb()` on the endpoint — and CORS for the Angular origin. gRPC-Web *does* support server streaming (it drops only client and bidirectional streaming), so `StreamStatement` survives the browser hop intact.
 
 ## Known traps
 

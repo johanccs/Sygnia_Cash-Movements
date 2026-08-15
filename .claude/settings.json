@@ -9,7 +9,10 @@
       "Bash(dotnet build *)",
       "Bash(rm -f sygnia.backend.sln)",
       "Bash(dotnet new *)",
-      "Bash(dotnet sln *)"
+      "Bash(dotnet sln *)",
+      "Bash(rm -rf */bin */obj)",
+      "Bash(rm -rf dist)",
+      "Bash(npx ng *)"
     ]
   }
 }
