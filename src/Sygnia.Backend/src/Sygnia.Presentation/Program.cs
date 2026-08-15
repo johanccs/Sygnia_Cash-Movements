@@ -1,9 +1,15 @@
+using Sygnia.Application;
+using Sygnia.Infrastructure;
 using Sygnia.Presentation.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddGrpc();
+builder.Services.Register(); // Sygnia.Application: MediatR, validators, logging pipeline
+builder.Services.AddInfrastructure(
+    builder.Configuration.GetConnectionString("SygniaCash")
+        ?? throw new InvalidOperationException("Missing 'ConnectionStrings:SygniaCash'."));
 
 var app = builder.Build();
 

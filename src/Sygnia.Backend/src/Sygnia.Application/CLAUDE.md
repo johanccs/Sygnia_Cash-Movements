@@ -29,11 +29,15 @@ not double-count. - Should account for idempotency and handled in Sygnia.Applica
     - Create folders for the commands and commandhandlers
     - Create folders for the query and queryhandlers
     - Use records for commands and queries
-    - Use private, sealed classes as the handlers
+    - Use internal sealed classes as the handlers (a top-level `private` class is illegal C#;
+      `internal sealed` + `[InternalsVisibleTo("Sygnia.Tests")]` is the closest deliverable
+      equivalent, and the convention already used in `Sygnia.Domain`)
 2. Create the classes using TDD.
 3. Add TODO comments where we will inject a dbcontext from ef core (still to be created).
 4. Implement: 
     - fluentvalidation
     - logging in mediatr pipeline
-5. Add a AppModuleExtensions static class with a Register extension method for IServiceProvider services if there are any DI registration needed.
+5. Add a AppModuleExtensions static class with a Register extension method for IServiceCollection
+   (not IServiceProvider — that's the already-built container; you register services into the
+   collection that builds it, not the provider itself) if there are any DI registration needed.
 6. For constructors - use primary ctor

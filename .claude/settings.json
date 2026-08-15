@@ -26,7 +26,12 @@
       "Bash(rm -f Sygnia.Backend.sln)",
       "Bash(rm -rf src/*/bin src/*/obj tests/*/bin tests/*/obj)",
       "Bash(rmdir Interfaces)",
-      "Bash(mv Ports Interfaces)"
+      "Bash(mv Ports Interfaces)",
+      "Bash(mkdir -p Unit Integration)",
+      "Bash(mv MovementMapperTests.cs Unit/)",
+      "Bash(mv BalanceReaderTests.cs MovementRepositoryConcurrentTests.cs MovementRepositoryTransferConflictTests.cs SqlServerCollection.cs SqlServerFixture.cs StatementReaderTests.cs Integration/)",
+      "Bash(sed -i 's/namespace Sygnia\\\\.Tests\\\\.Infrastructure;/namespace Sygnia.Tests.Infrastructure.Unit;/' Unit/MovementMapperTests.cs)",
+      "Bash(sed -i 's/namespace Sygnia\\\\.Tests\\\\.Infrastructure;/namespace Sygnia.Tests.Infrastructure.Integration;/' Integration/*.cs)"
     ]
   }
 }
