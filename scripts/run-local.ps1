@@ -1,8 +1,17 @@
 <#
 .SYNOPSIS
     Starts (or stops) the full Sygnia local dev stack: the Docker Compose services
-    (sqlserver, seq, jaeger, presentation, frontend) plus the two Windows-only
-    pieces that can't be containerized (Sygnia.Wcf.Gateway, Sygnia.WpfClient).
+    (sqlserver, seq, jaeger, frontend) plus the native Windows pieces
+    (Sygnia.Presentation, Sygnia.Wcf.Gateway, Sygnia.WpfClient).
+
+    Sygnia.Presentation runs NATIVELY here, not via its docker-compose container: the WCF
+    gateway's App.config points at https://localhost:7110 (TLS — required for WinHTTP's HTTP/2
+    ALPN negotiation; there's no h2c client fix on that side) and the frontend build's baked-in
+    API base is http://localhost:5058, both from Presentation's launchSettings.json. Neither
+    matches the containerized image's cleartext h2c on :8080, so the container is skipped here
+    and the native `dotnet run` is used instead. The `presentation` compose service itself is
+    untouched in docker-compose.yml — a plain `docker compose up -d` still brings up all 5 for
+    anyone who doesn't need the WCF gateway/WPF client.
 
 .USAGE
     pwsh scripts/run-local.ps1          # start everything
@@ -22,6 +31,8 @@ $scriptsDir  = "$backendRoot/scripts"
 if ($Stop) {
     Write-Host "Stopping native processes..."
     Get-Process -Name "Sygnia.Presentation","Sygnia.Wcf.Gateway","Sygnia.WpfClient" -ErrorAction SilentlyContinue |
+        # Presentation runs natively (see synopsis) so it needs killing here too — `docker
+        # compose down` below does not touch it.
         ForEach-Object {
             try { $_ | Stop-Process -Force -ErrorAction Stop }
             catch { Write-Warning "Could not stop $($_.ProcessName) (PID $($_.Id)): $($_.Exception.Message)" }
@@ -34,8 +45,13 @@ if ($Stop) {
     exit 0
 }
 
-Write-Host "Starting full docker compose stack (sqlserver, seq, jaeger, presentation, frontend)..."
-docker compose up -d
+Write-Host "Starting docker compose services (sqlserver, seq, jaeger, frontend)..."
+# `presentation` is deliberately excluded — Sygnia.Presentation runs natively below instead
+# (see script synopsis for why: TLS/port mismatch with the Wcf.Gateway and frontend clients).
+# --no-deps: `frontend` declares `depends_on: presentation` in docker-compose.yml (left
+# unchanged — a plain `docker compose up -d` should still bring up all 5 for other users), so
+# without --no-deps compose would silently start the presentation container anyway.
+docker compose up -d --no-deps sqlserver seq jaeger frontend
 
 # Wait for SQL Server to accept connections before applying schema/seed
 Write-Host "Waiting for SQL Server to become ready..."
@@ -103,6 +119,12 @@ foreach ($file in $sqlFiles) {
 }
 Write-Host "Schema and seed data applied."
 
+Write-Host "Starting Sygnia.Presentation..."
+# launchSettings.json defines "http" and "https" profiles; `dotnet run` picks the first
+# ("http", :5058 only) unless told otherwise. The Wcf.Gateway needs the TLS endpoint too, so
+# force the "https" profile, which listens on both https://localhost:7110 and http://localhost:5058.
+Start-Process -FilePath "dotnet" -ArgumentList "run --project $backendRoot/src/Sygnia.Presentation --launch-profile https" -PassThru | Out-Null
+
 Write-Host "Starting Sygnia.Wcf.Gateway..."
 Start-Process -FilePath "dotnet" -ArgumentList "run --project $backendRoot/src/Sygnia.Wcf.Gateway" -PassThru | Out-Null
 
@@ -111,6 +133,6 @@ Start-Process -FilePath "dotnet" -ArgumentList "run --project src/Sygnia.WpfClie
 
 Write-Host ""
 Write-Host "Stack is up:"
-Write-Host "  - docker compose: sqlserver, seq, jaeger, presentation (localhost:8080), frontend (localhost:4200)"
-Write-Host "  - native: Sygnia.Wcf.Gateway, Sygnia.WpfClient"
+Write-Host "  - docker compose: sqlserver, seq, jaeger, frontend (localhost:4200)"
+Write-Host "  - native: Sygnia.Presentation (https://localhost:7110, http://localhost:5058), Sygnia.Wcf.Gateway, Sygnia.WpfClient"
 Write-Host "Run with -Stop to shut everything down."
