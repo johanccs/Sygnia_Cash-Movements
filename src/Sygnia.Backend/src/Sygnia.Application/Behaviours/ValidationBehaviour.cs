@@ -12,7 +12,9 @@ namespace Sygnia.Application.Behaviours;
 /// boilerplate. Only requests implementing <see cref="IValidatedRequest"/> are short-circuited
 /// on failure — everything else passes through untouched, so registering this open generic is
 /// safe even for requests (like the streaming statement query) that don't return a
-/// <c>Result&lt;T&gt;</c> at all.
+/// <c>Result&lt;T&gt;</c> at all. A request that implements <see cref="IValidatedRequest"/> but
+/// has no validator registered is a wiring bug, not a pass-through case, so it throws rather
+/// than silently skipping validation.
 /// </summary>
 internal sealed class ValidationBehaviour<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
@@ -23,9 +25,16 @@ internal sealed class ValidationBehaviour<TRequest, TResponse>(IEnumerable<IVali
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (request is not IValidatedRequest validated || !validators.Any())
+        if (request is not IValidatedRequest validated)
         {
             return await next();
+        }
+
+        if (!validators.Any())
+        {
+            throw new InvalidOperationException(
+                $"{typeof(TRequest).Name} implements {nameof(IValidatedRequest)} but has no " +
+                $"IValidator<{typeof(TRequest).Name}> registered.");
         }
 
         var failures = await CollectFailuresAsync(request, cancellationToken);
