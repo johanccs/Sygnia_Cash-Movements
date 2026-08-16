@@ -36,7 +36,7 @@ public sealed class Account
         AccountId = accountId;
         AccountName = accountName;
         ContactPerson = contactPerson;
-        Currency = currency;
+        Currency = Guard.NormalizeCurrency(currency);
         CreatedDate = createdDate;
         CreatedBy = createdBy;
     }
@@ -93,32 +93,31 @@ public sealed class Account
             new Account(AccountId, AccountName, contactPerson, Currency, CreatedDate, CreatedBy));
     }
 
-    private static Error? ValidateAccountName(string? accountName)
+    /// <summary>
+    /// Rejects a <paramref name="currency"/> that does not match this account's, comparing on
+    /// the same normalised (uppercase) form the account itself was constructed with — so "zar"
+    /// and "ZAR" are treated as identical. Shared by <c>SubmitMovementCommandHandler</c> and
+    /// <c>TransferFundsCommandHandler</c> rather than each re-implementing the check, since the
+    /// balance <c>SUM</c> would otherwise silently mix currencies on a mismatch.
+    /// </summary>
+    public Error? EnsureCurrencyMatches(string currency)
     {
-        if (string.IsNullOrWhiteSpace(accountName))
+        var normalized = Guard.NormalizeCurrency(currency);
+        if (string.Equals(Currency, normalized, StringComparison.Ordinal))
         {
-            return new Error("account.name.invalid", "Account name is required.");
+            return null;
         }
 
-        if (accountName.Length > AccountNameMaxLength)
-        {
-            return new Error(
-                "account.name.invalid",
-                $"Account name must be {AccountNameMaxLength} characters or fewer, but was {accountName.Length}.");
-        }
-
-        return null;
+        return new Error(
+            ErrorCode.MovementCurrencyInvalid,
+            $"Account '{AccountId}' is '{Currency}'; amount was submitted in '{normalized}'.");
     }
 
-    private static Error? ValidateContactPerson(string? contactPerson)
-    {
-        if (contactPerson is not null && contactPerson.Length > ContactPersonMaxLength)
-        {
-            return new Error(
-                "account.contactperson.invalid",
-                $"Contact person must be {ContactPersonMaxLength} characters or fewer, but was {contactPerson.Length}.");
-        }
+    private static Error? ValidateAccountName(string? accountName) =>
+        Guard.TryValidateLength(
+            accountName, AccountNameMaxLength, required: true, ErrorCode.AccountNameInvalid, "Account name");
 
-        return null;
-    }
+    private static Error? ValidateContactPerson(string? contactPerson) =>
+        Guard.TryValidateLength(
+            contactPerson, ContactPersonMaxLength, required: false, ErrorCode.AccountContactPersonInvalid, "Contact person");
 }

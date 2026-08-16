@@ -174,9 +174,32 @@ instead of `SecurityMode.None`.
 - **MediatR / pipeline behaviours** — out at the solution root, but opted back in for
   `Sygnia.Application` specifically (see
   `src/Sygnia.Backend/src/Sygnia.Application/CLAUDE.md`): commands/queries as records, private
-  sealed handlers, FluentValidation, and a logging pipeline behaviour, registered via an
-  `AppModuleExtensions` DI extension. Scoped to that project rather than solution-wide to keep
-  the dependency out of `Sygnia.Domain` and `Sygnia.Presentation`.
+  sealed handlers, FluentValidation, and logging + validation pipeline behaviours, registered via
+  an `AppModuleExtensions` DI extension. Scoped to that project rather than solution-wide to keep
+  the dependency out of `Sygnia.Domain` and `Sygnia.Presentation`. `ValidationBehaviour<,>` runs
+  after `LoggingBehaviour<,>` and replaces the validate-then-map-to-`Error` boilerplate that used
+  to be repeated in each of the four command handlers; a request opts in by implementing the
+  internal `IValidatedRequest` marker (naming the `ErrorCode` to report on failure), so the
+  behaviour safely no-ops for any request — including the streaming `GetStatement` query — that
+  doesn't implement it.
+- **`ErrorCode` enum** (`Sygnia.Domain`) — replaces the raw string literals (`"movement.invalid"`,
+  `"account.contactperson.invalid"`, etc.) previously passed to `new Error(code, message)`.
+  `Error.Code` stays a `string` (least invasive: `ResultExtensionsTests` and other tests already
+  assert against string codes, and gRPC status mapping is naturally string-keyed), but every call
+  site now constructs an `Error` from an `ErrorCode` via `new Error(ErrorCode.X, message)`, which
+  delegates to `ErrorCodeExtensions.ToCode()` — the single place the enum-to-wire-string
+  convention lives. `ResultExtensions.ToRpcException` matches on the known codes derived from the
+  enum first, falling back to the old `.EndsWith(".invalid")` heuristic only for a string that
+  isn't one of the enum's known codes. `ResultExtensionsTests.ToRpcException_MapsEveryKnownErrorCode`
+  enumerates every `ErrorCode` value and pins it to its expected `StatusCode`, so a new code added
+  to the enum without a corresponding mapping fails the test instead of silently defaulting to
+  `INTERNAL`.
+- **Currency case normalisation** — `Guard.NormalizeCurrency` upper-invariants the currency code
+  at construction time in both `Account` and `Movement`, and `Account.EnsureCurrencyMatches`
+  (the single shared currency-mismatch check used by both `SubmitMovementCommandHandler` and
+  `TransferFundsCommandHandler`) normalises the incoming value before comparing. `"zar"` and
+  `"ZAR"` are now the same currency everywhere; see
+  `src/Sygnia.Backend/src/Sygnia.Domain/CLAUDE.md`'s former "Known gap" note, now marked resolved.
 - **Optional extensions** (batch submission, file-format statement export, a progress-showing
   client utility) — not built; all explicitly "only if time allows" in the brief.
 

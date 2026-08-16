@@ -42,7 +42,7 @@ public sealed class Movement
 
         AccountId = accountId;
         ExternalRef = externalRef;
-        Currency = currency;
+        Currency = Guard.NormalizeCurrency(currency);
         Amount = amount;
         OccurredAt = occurredAt;
         Narration = narration;

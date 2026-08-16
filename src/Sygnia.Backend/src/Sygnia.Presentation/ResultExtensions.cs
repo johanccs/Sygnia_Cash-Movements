@@ -12,19 +12,31 @@ namespace Sygnia.Presentation;
 /// </summary>
 internal static class ResultExtensions
 {
-    public static RpcException ToRpcException(this Error error)
-    {
-        var status = error.Code switch
-        {
-            "account.not_found" => StatusCode.NotFound,
-            "movement.already_exists" => StatusCode.AlreadyExists,
-            "account.already_exists" => StatusCode.AlreadyExists,
-            "user.not_found" => StatusCode.NotFound,
-            "user.already_exists" => StatusCode.AlreadyExists,
-            _ when error.Code.EndsWith(".invalid", StringComparison.Ordinal) => StatusCode.InvalidArgument,
-            _ => StatusCode.Internal,
-        };
+    public static RpcException ToRpcException(this Error error) =>
+        new(new Status(ToStatusCode(error.Code), error.Message));
 
-        return new RpcException(new Status(status, error.Message));
-    }
+    /// <summary>
+    /// Matches on the known <see cref="ErrorCode"/> string first — the enum enumerates every
+    /// code the codebase actually raises, and <c>Sygnia.Tests</c> pins each one to its expected
+    /// status, so an unmapped new code fails that test rather than silently falling through.
+    /// The suffix-based fallback only covers a code this switch does not yet know about.
+    /// </summary>
+    private static StatusCode ToStatusCode(string code) => code switch
+    {
+        var c when c == ErrorCode.AccountNotFound.ToCode() || c == ErrorCode.UserNotFound.ToCode() => StatusCode.NotFound,
+        var c when c == ErrorCode.AccountAlreadyExists.ToCode()
+            || c == ErrorCode.MovementAlreadyExists.ToCode()
+            || c == ErrorCode.UserAlreadyExists.ToCode() => StatusCode.AlreadyExists,
+        var c when c == ErrorCode.AccountInvalid.ToCode()
+            || c == ErrorCode.AccountNameInvalid.ToCode()
+            || c == ErrorCode.AccountContactPersonInvalid.ToCode()
+            || c == ErrorCode.MovementInvalid.ToCode()
+            || c == ErrorCode.MovementCurrencyInvalid.ToCode()
+            || c == ErrorCode.TransferInvalid.ToCode()
+            || c == ErrorCode.BalanceInvalid.ToCode()
+            || c == ErrorCode.StatementInvalid.ToCode()
+            || c == ErrorCode.UserInvalid.ToCode() => StatusCode.InvalidArgument,
+        _ when code.EndsWith(".invalid", StringComparison.Ordinal) => StatusCode.InvalidArgument,
+        _ => StatusCode.Internal,
+    };
 }

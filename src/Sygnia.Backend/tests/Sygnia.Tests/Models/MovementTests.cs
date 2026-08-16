@@ -54,6 +54,16 @@ public sealed class MovementTests
         Assert.Equal(ValidMovedBy, movement.MovedBy);
     }
 
+    [Fact]
+    public void Constructor_LowercaseCurrency_IsNormalizedToUppercase()
+    {
+        var movement = new Movement(
+            ValidAccountId, ValidExternalRef, "zar", ValidAmount, ValidOccurredAt,
+            null, Guid.NewGuid(), ValidMovedBy, ValidOccurredAt);
+
+        Assert.Equal("ZAR", movement.Currency);
+    }
+
     // --- AccountId: first half of the composite key ---
 
     [Theory]

@@ -75,7 +75,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         if (conflictMessages.Count > 0)
         {
             return Result<(Movement, Movement)>.Failure(new Error(
-                "movement.already_exists",
+                ErrorCode.MovementAlreadyExists,
                 $"Transfer '{debit.RefNr}' already exists with a different {string.Join(", ", conflictMessages)}."));
         }
 
@@ -117,7 +117,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
 
         var missingLeg = storedDebit is null ? "debit" : "credit";
         return Result<(Movement, Movement)>.Failure(new Error(
-            "movement.conflict_unresolved",
+            ErrorCode.MovementConflictUnresolved,
             $"Transfer '{refNr}' hit a key conflict but its {missingLeg} leg could not be read back."));
     }
 
@@ -128,7 +128,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
             // The key we just failed to insert is now missing — a concurrent delete. Not a
             // conflict we can resolve as a replay.
             return Result<Movement>.Failure(new Error(
-                "movement.conflict_unresolved",
+            ErrorCode.MovementConflictUnresolved,
                 $"'{attempted.ExternalRef}' for '{attempted.AccountId}' could not be read back after a key conflict."));
         }
 
@@ -136,7 +136,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         return conflicts.Count == 0
             ? Result<Movement>.Success(stored.ToDomain())
             : Result<Movement>.Failure(new Error(
-                "movement.already_exists",
+                ErrorCode.MovementAlreadyExists,
                 $"'{attempted.ExternalRef}' already exists for '{attempted.AccountId}' with a different {string.Join(", ", conflicts)}."));
     }
 

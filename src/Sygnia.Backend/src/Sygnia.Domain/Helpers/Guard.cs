@@ -35,6 +35,14 @@ internal static class Guard
     }
 
     /// <summary>
+    /// Currency codes are compared and stored case-insensitively but normalised to a single
+    /// canonical form, so "zar" and "ZAR" are the same currency everywhere: at construction
+    /// (<see cref="Models.Account"/>, <see cref="Models.Movement"/>) and at comparison
+    /// (<see cref="Models.Account.EnsureCurrencyMatches"/>).
+    /// </summary>
+    internal static string NormalizeCurrency(string value) => value.ToUpperInvariant();
+
+    /// <summary>
     /// Timestamps cross the gRPC wire as UTC. Accepting a local or unspecified DateTime here
     /// would let a local time be stored as though it were UTC — a silent, hard-to-trace defect.
     /// </summary>
@@ -71,5 +79,28 @@ internal static class Guard
             throw new ArgumentOutOfRangeException(
                 paramName, value, $"{paramName} must be non-zero: positive for a deposit, negative for a withdrawal.");
         }
+    }
+
+    /// <summary>
+    /// The <c>Result</c>-returning counterpart of <see cref="AgainstNullOrWhiteSpace"/> +
+    /// <see cref="AgainstTooLong"/>, for the update methods (e.g.
+    /// <see cref="Models.Account.WithAccountName"/>) that must return a failure rather than
+    /// throw. Reuses the exact same required/length rules instead of re-implementing them.
+    /// </summary>
+    internal static Error? TryValidateLength(
+        string? value, int maxLength, bool required, ErrorCode code, string fieldLabel)
+    {
+        if (required && string.IsNullOrWhiteSpace(value))
+        {
+            return new Error(code, $"{fieldLabel} is required.");
+        }
+
+        if (value is not null && value.Length > maxLength)
+        {
+            return new Error(
+                code, $"{fieldLabel} must be {maxLength} characters or fewer, but was {value.Length}.");
+        }
+
+        return null;
     }
 }

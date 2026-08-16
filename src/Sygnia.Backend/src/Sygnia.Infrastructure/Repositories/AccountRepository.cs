@@ -35,7 +35,7 @@ internal sealed class AccountRepository(SygniaDbContext db) : IAccountRepository
         catch (DbUpdateException ex) when (ex.IsDuplicateKeyViolation())
         {
             return Result<Account>.Failure(new Error(
-                "account.already_exists",
+                ErrorCode.AccountAlreadyExists,
                 $"Account '{account.AccountId}' already exists."));
         }
     }

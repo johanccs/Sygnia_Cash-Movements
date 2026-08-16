@@ -26,6 +26,36 @@ public sealed class AccountTests
         Assert.Equal(ValidCreatedBy, account.CreatedBy);
     }
 
+    [Fact]
+    public void Constructor_LowercaseCurrency_IsNormalizedToUppercase()
+    {
+        var account = new Account(
+            ValidAccountId, ValidAccountName, null, "zar", ValidCreatedDate, ValidCreatedBy);
+
+        Assert.Equal("ZAR", account.Currency);
+    }
+
+    [Fact]
+    public void EnsureCurrencyMatches_SameCurrencyDifferentCase_ReturnsNull()
+    {
+        var account = new Account(
+            ValidAccountId, ValidAccountName, null, ValidCurrency, ValidCreatedDate, ValidCreatedBy);
+
+        Assert.Null(account.EnsureCurrencyMatches("zar"));
+    }
+
+    [Fact]
+    public void EnsureCurrencyMatches_DifferentCurrency_ReturnsCurrencyInvalidError()
+    {
+        var account = new Account(
+            ValidAccountId, ValidAccountName, null, ValidCurrency, ValidCreatedDate, ValidCreatedBy);
+
+        var error = account.EnsureCurrencyMatches("USD");
+
+        Assert.NotNull(error);
+        Assert.Equal("movement.currency.invalid", error!.Code);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

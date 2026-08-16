@@ -18,6 +18,12 @@ public sealed record Error
         Message = message;
     }
 
+    /// <summary>Preferred overload — takes a known <see cref="ErrorCode"/> rather than a literal.</summary>
+    public Error(ErrorCode code, string message)
+        : this(code.ToCode(), message)
+    {
+    }
+
     public string Code { get; }
 
     public string Message { get; }

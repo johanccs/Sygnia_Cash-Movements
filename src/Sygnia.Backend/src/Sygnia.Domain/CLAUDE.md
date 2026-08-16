@@ -85,8 +85,9 @@ dotnet test    # from src/Sygnia.Backend
 `Sygnia.Tests` holds **both** unit and integration tests — it is named `Sygnia.Tests`, not
 `Sygnia.UnitTests`, for exactly that reason.
 
-## Known gap
+## Known gap (resolved)
 
-`Currency` is validated as three letters but **not** normalised to uppercase, so `"zar"` and
-`"ZAR"` would both be accepted as distinct values. Left unnormalised because no test covers
-it; worth deciding before movements are persisted.
+`Currency` is validated as three letters and normalised via `Guard.NormalizeCurrency` (uppercase,
+invariant culture) at construction time in both `Account` and `Movement`, and again wherever a
+submitted currency is compared against a stored one (`Account.EnsureCurrencyMatches`). `"zar"`
+and `"ZAR"` are now the same currency everywhere.
