@@ -1,0 +1,170 @@
+<mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="900" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <mxCell id="pC" value="Client" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cde4ff;strokeColor=#6c8ebf;" vertex="1" parent="1">
+      <mxGeometry x="40" y="40" width="140" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="lC" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1" source="pC" target="pC">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="110" y="80" as="sourcePoint" />
+        <mxPoint x="110" y="820" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="pP" value="MovementGrpcService" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="270" y="40" width="160" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="lP" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1" source="pP" target="pP">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="350" y="80" as="sourcePoint" />
+        <mxPoint x="350" y="820" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="pA" value="SubmitMovementHandler" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="530" y="40" width="170" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="lA" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1" source="pA" target="pA">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="615" y="80" as="sourcePoint" />
+        <mxPoint x="615" y="820" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="pR" value="MovementRepository" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="800" y="40" width="170" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="lR" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1" source="pR" target="pR">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="80" as="sourcePoint" />
+        <mxPoint x="885" y="820" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="pD" value="SQL Server" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;" vertex="1" parent="1">
+      <mxGeometry x="1070" y="40" width="150" height="40" as="geometry" />
+    </mxCell>
+    <mxCell id="lD" style="endArrow=none;dashed=1;html=1;strokeColor=#666666;" edge="1" parent="1" source="pD" target="pD">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1145" y="80" as="sourcePoint" />
+        <mxPoint x="1145" y="820" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="m1" value="SubmitMovement(request)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="110" y="110" as="sourcePoint" />
+        <mxPoint x="350" y="110" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m2" value="Send(command)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="350" y="150" as="sourcePoint" />
+        <mxPoint x="615" y="150" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m3" value="Validate (FluentValidation)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="615" y="190" as="sourcePoint" />
+        <mxPoint x="700" y="190" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="altBox1" value="alt: invalid" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=none;strokeColor=#d6b656;fontColor=#d6b656;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="220" width="900" height="70" as="geometry" />
+    </mxCell>
+    <mxCell id="m4" value="Result.Fail(validation error)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="615" y="255" as="sourcePoint" />
+        <mxPoint x="350" y="255" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m5" value="INVALID_ARGUMENT" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;strokeColor=#b85450;fontColor=#b85450;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="350" y="272" as="sourcePoint" />
+        <mxPoint x="110" y="272" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="altBox2" value="else: valid" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=none;strokeColor=#82b366;fontColor=#82b366;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="300" width="1140" height="510" as="geometry" />
+    </mxCell>
+
+    <mxCell id="m6" value="AddAsync(movement)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="615" y="340" as="sourcePoint" />
+        <mxPoint x="885" y="340" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m7" value="INSERT INTO Movements" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="380" as="sourcePoint" />
+        <mxPoint x="1145" y="380" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="altBox3" value="alt: unique constraint violation (2627/2601)" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=none;strokeColor=#b85450;fontColor=#b85450;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="820" y="410" width="360" height="270" as="geometry" />
+    </mxCell>
+    <mxCell id="m8" value="SQL error" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1145" y="450" as="sourcePoint" />
+        <mxPoint x="885" y="450" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m9" value="SELECT stored row" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="480" as="sourcePoint" />
+        <mxPoint x="1145" y="480" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m10" value="stored row" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1145" y="510" as="sourcePoint" />
+        <mxPoint x="885" y="510" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m11" value="fields identical -&gt; Result.Ok(stored)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;strokeColor=#82b366;fontColor=#82b366;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="545" as="sourcePoint" />
+        <mxPoint x="615" y="545" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m12" value="fields differ -&gt; Result.Fail(already_exists)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;strokeColor=#b85450;fontColor=#b85450;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="580" as="sourcePoint" />
+        <mxPoint x="615" y="580" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m13" value="OK / ALREADY_EXISTS" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="615" y="615" as="sourcePoint" />
+        <mxPoint x="350" y="615" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m14" value="OK (stored movement) / ALREADY_EXISTS + fields" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="350" y="650" as="sourcePoint" />
+        <mxPoint x="110" y="650" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+
+    <mxCell id="altBox4" value="else: no conflict" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fillColor=none;strokeColor=#82b366;fontColor=#82b366;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="820" y="700" width="360" height="90" as="geometry" />
+    </mxCell>
+    <mxCell id="m15" value="success" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;strokeColor=#82b366;fontColor=#82b366;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="1145" y="740" as="sourcePoint" />
+        <mxPoint x="885" y="740" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="m16" value="Result.Ok(new movement) -&gt; OK -&gt; OK (new movement)" style="html=1;endArrow=block;elbow=vertical;startArrow=none;edgeStyle=none;dashed=1;strokeColor=#82b366;fontColor=#82b366;" edge="1" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <mxPoint x="885" y="770" as="sourcePoint" />
+        <mxPoint x="110" y="770" as="targetPoint" />
+      </mxGeometry>
+    </mxCell>
+  </root>
+</mxGraphModel>
