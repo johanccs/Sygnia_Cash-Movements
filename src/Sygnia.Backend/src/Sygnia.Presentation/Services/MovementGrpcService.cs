@@ -108,14 +108,7 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
     public override async Task<GetStatementPageResponse> GetStatementPage(
         GetStatementPageRequest request, ServerCallContext context)
     {
-        // From/To are optional on this RPC (unlike GetStatement's required range) — an unset
-        // Timestamp field comes back as a null reference, not a default instance.
-        var query = new GetStatementPageQuery(
-            request.AccountId,
-            request.From is null ? DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc) : request.From.ToDateTime(),
-            request.To is null ? DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) : request.To.ToDateTime(),
-            request.PageNumber,
-            request.PageSize);
+        var query = BuildStatementPageQuery(request);
 
         var result = await mediator.Send(query, context.CancellationToken);
         if (result.IsFailure)
@@ -131,4 +124,14 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
 
         return response;
     }
+
+    // From/To are optional on this RPC (unlike GetStatement's required range) — an unset
+    // Timestamp field comes back as a null reference, not a default instance.
+    private static GetStatementPageQuery BuildStatementPageQuery(GetStatementPageRequest request) =>
+        new(
+            request.AccountId,
+            request.From is null ? DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc) : request.From.ToDateTime(),
+            request.To is null ? DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) : request.To.ToDateTime(),
+            request.PageNumber,
+            request.PageSize);
 }

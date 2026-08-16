@@ -71,22 +71,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         var storedDebit = await FindStoredAsync(debit.AccountId, debit.ExternalRef, cancellationToken);
         var storedCredit = await FindStoredAsync(credit.AccountId, credit.ExternalRef, cancellationToken);
 
-        var debitConflicts = storedDebit is null ? null : DescribeConflicts(debit, storedDebit);
-        var creditConflicts = storedCredit is null ? null : DescribeConflicts(credit, storedCredit);
-
-        // A leg that was actually found with mismatched fields is a genuine, reportable
-        // conflict regardless of what the other leg looks like.
-        var conflictMessages = new List<string>();
-        if (debitConflicts is { Count: > 0 })
-        {
-            conflictMessages.Add($"debit {string.Join("/", debitConflicts)}");
-        }
-
-        if (creditConflicts is { Count: > 0 })
-        {
-            conflictMessages.Add($"credit {string.Join("/", creditConflicts)}");
-        }
-
+        var conflictMessages = DescribeLegConflicts(debit, storedDebit, credit, storedCredit);
         if (conflictMessages.Count > 0)
         {
             return Result<(Movement, Movement)>.Failure(new Error(
@@ -94,9 +79,37 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
                 $"Transfer '{debit.RefNr}' already exists with a different {string.Join(", ", conflictMessages)}."));
         }
 
-        // No mismatches found. Either both legs are an identical replay (the normal case for
-        // the same transfer resubmitted), or one leg was never written at all — which cannot
-        // be resolved as a replay, since this repository never writes a transfer's legs apart.
+        return ResolveNoConflict(debit.RefNr, storedDebit, storedCredit);
+    }
+
+    // A leg that was actually found with mismatched fields is a genuine, reportable conflict
+    // regardless of what the other leg looks like.
+    private static List<string> DescribeLegConflicts(
+        Movement debit, MovementEntity? storedDebit, Movement credit, MovementEntity? storedCredit)
+    {
+        var messages = new List<string>();
+
+        var debitConflicts = storedDebit is null ? null : DescribeConflicts(debit, storedDebit);
+        if (debitConflicts is { Count: > 0 })
+        {
+            messages.Add($"debit {string.Join("/", debitConflicts)}");
+        }
+
+        var creditConflicts = storedCredit is null ? null : DescribeConflicts(credit, storedCredit);
+        if (creditConflicts is { Count: > 0 })
+        {
+            messages.Add($"credit {string.Join("/", creditConflicts)}");
+        }
+
+        return messages;
+    }
+
+    // No mismatches found. Either both legs are an identical replay (the normal case for the
+    // same transfer resubmitted), or one leg was never written at all — which cannot be
+    // resolved as a replay, since this repository never writes a transfer's legs apart.
+    private static Result<(Movement Debit, Movement Credit)> ResolveNoConflict(
+        Guid refNr, MovementEntity? storedDebit, MovementEntity? storedCredit)
+    {
         if (storedDebit is not null && storedCredit is not null)
         {
             return Result<(Movement, Movement)>.Success((storedDebit.ToDomain(), storedCredit.ToDomain()));
@@ -105,7 +118,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         var missingLeg = storedDebit is null ? "debit" : "credit";
         return Result<(Movement, Movement)>.Failure(new Error(
             "movement.conflict_unresolved",
-            $"Transfer '{debit.RefNr}' hit a key conflict but its {missingLeg} leg could not be read back."));
+            $"Transfer '{refNr}' hit a key conflict but its {missingLeg} leg could not be read back."));
     }
 
     private static Result<Movement> ResolveSingleLegConflict(Movement attempted, MovementEntity? stored)

@@ -1,12 +1,8 @@
 namespace Sygnia.Domain.Models;
 
 /// <summary>
-/// A single cash movement against an account.
-/// <para>
-/// <c>(AccountId, ExternalRef)</c> is the composite primary key, and it is also the
-/// idempotency key: the database — not this class — is what stops the same reference being
-/// recorded twice. See the persistence layer for that half.
-/// </para>
+/// A single cash movement against an account. <c>(AccountId, ExternalRef)</c> is both the
+/// composite primary key and the idempotency key — enforced by the database, not this class.
 /// </summary>
 public sealed class Movement
 {
@@ -26,8 +22,6 @@ public sealed class Movement
         string movedBy,
         DateTime movedDate)
     {
-        // Every guard runs before any field is assigned, so a rejected Movement is never
-        // half-built.
         Guard.AgainstNullOrWhiteSpace(accountId, nameof(accountId));
         Guard.AgainstTooLong(accountId, AccountIdMaxLength, nameof(accountId));
 

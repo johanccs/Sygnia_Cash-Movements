@@ -15,13 +15,8 @@ namespace Sygnia.Application;
 
 /// <summary>
 /// This layer's one composition-root entry point. Everything else in the project is
-/// <c>internal sealed</c>, so registration can only happen here.
-/// <para>
-/// The originating instruction named this a <c>Register</c> extension on
-/// <c>IServiceProvider</c>; DI registration has to run against <c>IServiceCollection</c> (the
-/// container being built, not the built provider), so it is implemented as that instead —
-/// the naming (<c>AppModuleExtensions.Register</c>) is kept as specified.
-/// </para>
+/// <c>internal sealed</c>, so registration can only happen here. Registers against
+/// <c>IServiceCollection</c> — the container being built, not the built <c>IServiceProvider</c>.
 /// </summary>
 public static class AppModuleExtensions
 {
