@@ -12,6 +12,8 @@ public sealed class SygniaDbContext(DbContextOptions<SygniaDbContext> options) :
 
     public DbSet<UserEntity> Users => Set<UserEntity>();
 
+    public DbSet<MovementConflictAuditEntity> MovementConflictAudits => Set<MovementConflictAuditEntity>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // SQL Server's datetime2 has no concept of DateTimeKind — every value comes back
@@ -66,6 +68,24 @@ public sealed class SygniaDbContext(DbContextOptions<SygniaDbContext> options) :
             entity.HasIndex(m => new { m.AccountId, m.OccurredAt })
                 .IncludeProperties(m => m.Amount)
                 .HasDatabaseName("IX_Movements_Account_OccurredAt");
+        });
+
+        modelBuilder.Entity<MovementConflictAuditEntity>(entity =>
+        {
+            entity.ToTable("MovementConflictAudits");
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.AccountId).HasMaxLength(Movement.AccountIdMaxLength).IsRequired();
+            entity.Property(a => a.ExternalRef).HasMaxLength(Movement.ExternalRefMaxLength).IsRequired();
+            entity.Property(a => a.AttemptedAmount).HasColumnType("DECIMAL(19,4)");
+            entity.Property(a => a.AttemptedCurrency).HasMaxLength(3).IsRequired();
+            entity.Property(a => a.StoredAmount).HasColumnType("DECIMAL(19,4)");
+            entity.Property(a => a.StoredCurrency).HasMaxLength(3).IsRequired();
+            entity.Property(a => a.ConflictingFields).HasMaxLength(200).IsRequired();
+
+            // No FK to Movements: the audit row must survive even in the (currently
+            // unreachable, but not worth coupling to) case where the conflicting account
+            // itself is later removed.
+            entity.HasIndex(a => new { a.AccountId, a.ExternalRef });
         });
     }
 }

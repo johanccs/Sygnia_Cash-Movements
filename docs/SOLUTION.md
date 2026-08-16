@@ -92,6 +92,14 @@ than a generic "duplicate" message. Reasoning:
 - `ALREADY_EXISTS` is the closest fit in the standard gRPC status vocabulary; `INVALID_ARGUMENT`
   would be wrong because the request itself is well-formed — it just collides with prior state.
 
+A genuine field conflict (not an identical replay) is never silent on the server side either:
+`MovementRepository.AuditConflictAsync` persists a row to `MovementConflictAudits` (attempted
+vs. stored `Amount`/`Currency`/`OccurredAt`, which fields differed, and when) and logs a
+`Warning` via Serilog, alongside the `ALREADY_EXISTS` returned to the caller. The audit write is
+best-effort — a failure there is logged as an `Error` but never turns an already-handled
+conflict into an unhandled exception on the caller's request. An identical replay is not
+audited; only a true mismatch is, since that's the case an operator actually needs to see.
+
 ## Error approach (gRPC)
 
 The brief asks for one global error handler per transport, analogous to HTTP's

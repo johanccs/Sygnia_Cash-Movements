@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Sygnia.Domain.Models;
 using Sygnia.Infrastructure.Repositories;
 
@@ -31,8 +32,8 @@ public sealed class MovementRepositoryTransferConflictTests(SqlServerFixture fix
         // request, so no single DbContext ever sees two AddTransferAsync calls for the same
         // key. Reusing one context here would hit an unrelated EF identity-tracking conflict
         // that has nothing to do with the behaviour under test.
-        var first = await new MovementRepository(fixture.CreateContext()).AddTransferAsync(debit, credit, CancellationToken.None);
-        var second = await new MovementRepository(fixture.CreateContext()).AddTransferAsync(debit, credit, CancellationToken.None);
+        var first = await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance).AddTransferAsync(debit, credit, CancellationToken.None);
+        var second = await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance).AddTransferAsync(debit, credit, CancellationToken.None);
 
         Assert.True(first.IsSuccess);
         Assert.True(second.IsSuccess);
@@ -53,7 +54,7 @@ public sealed class MovementRepositoryTransferConflictTests(SqlServerFixture fix
         // First transfer establishes the debit leg's key (fromAccount, "MOV-XFER-02-DR").
         var originalDebit = CreateMovement(fromAccount, "MOV-XFER-02-DR", -100.00m);
         var originalCredit = CreateMovement(firstToAccount, "MOV-XFER-02-CR", 100.00m);
-        var original = await new MovementRepository(fixture.CreateContext())
+        var original = await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance)
             .AddTransferAsync(originalDebit, originalCredit, CancellationToken.None);
         Assert.True(original.IsSuccess);
 
@@ -63,7 +64,7 @@ public sealed class MovementRepositoryTransferConflictTests(SqlServerFixture fix
         // Fresh context, matching production's per-request scoping.
         var conflictingDebit = CreateMovement(fromAccount, "MOV-XFER-02-DR", -250.00m);
         var newCredit = CreateMovement(secondToAccount, "MOV-XFER-02-CR", 250.00m);
-        var conflicting = await new MovementRepository(fixture.CreateContext())
+        var conflicting = await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance)
             .AddTransferAsync(conflictingDebit, newCredit, CancellationToken.None);
 
         Assert.True(conflicting.IsFailure);

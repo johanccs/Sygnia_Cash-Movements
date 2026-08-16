@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Sygnia.Application.Interfaces;
 using Sygnia.Domain;
 using Sygnia.Domain.Models;
@@ -15,8 +16,11 @@ namespace Sygnia.Infrastructure.Repositories;
 /// so <see cref="AddTransferAsync"/> writes both legs atomically for free — which also means a
 /// conflict on either leg rolls the whole pair back, so the other leg reading back "not found"
 /// afterwards is expected, not itself a conflict. See <see cref="ResolveTransferConflictAsync"/>.
+/// A genuine field conflict (not an identical replay) is never silent: it is reported to the
+/// caller as <c>ALREADY_EXISTS</c> AND persisted to <c>MovementConflictAudits</c> — see
+/// <see cref="AuditConflictAsync"/>.
 /// </summary>
-internal sealed class MovementRepository(SygniaDbContext db) : IMovementRepository
+internal sealed class MovementRepository(SygniaDbContext db, ILogger<MovementRepository> logger) : IMovementRepository
 {
     public async Task<Result<Movement>> AddAsync(Movement movement, CancellationToken cancellationToken)
     {
@@ -32,7 +36,13 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
         {
             db.Entry(entity).State = EntityState.Detached;
             var stored = await FindStoredAsync(movement.AccountId, movement.ExternalRef, cancellationToken);
-            return ResolveSingleLegConflict(movement, stored);
+            var result = ResolveSingleLegConflict(movement, stored);
+            if (result.IsFailure && stored is not null)
+            {
+                await AuditConflictAsync(movement, stored, cancellationToken);
+            }
+
+            return result;
         }
     }
 
@@ -138,6 +148,46 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
             : Result<Movement>.Failure(new Error(
                 ErrorCode.MovementAlreadyExists,
                 $"'{attempted.ExternalRef}' already exists for '{attempted.AccountId}' with a different {string.Join(", ", conflicts)}."));
+    }
+
+    /// <summary>
+    /// Persists the conflict and logs a warning. A separate <c>SaveChangesAsync</c> from the
+    /// failed write above — that transaction is already rolled back, so this is its own attempt
+    /// and is deliberately best-effort: a failure to audit must not turn an otherwise-handled
+    /// conflict into an unhandled exception on the caller's request.
+    /// </summary>
+    private async Task AuditConflictAsync(Movement attempted, MovementEntity stored, CancellationToken cancellationToken)
+    {
+        var conflictingFields = string.Join(", ", DescribeConflicts(attempted, stored));
+
+        logger.LogWarning(
+            "Idempotency conflict for {AccountId}/{ExternalRef}: attempted submission differs from " +
+            "the stored movement in {ConflictingFields}.",
+            attempted.AccountId, attempted.ExternalRef, conflictingFields);
+
+        db.MovementConflictAudits.Add(new MovementConflictAuditEntity
+        {
+            AccountId = attempted.AccountId,
+            ExternalRef = attempted.ExternalRef,
+            AttemptedAmount = attempted.Amount,
+            AttemptedCurrency = attempted.Currency,
+            AttemptedOccurredAt = attempted.OccurredAt,
+            StoredAmount = stored.Amount,
+            StoredCurrency = stored.Currency,
+            StoredOccurredAt = stored.OccurredAt,
+            ConflictingFields = conflictingFields,
+            DetectedAt = DateTime.UtcNow,
+        });
+
+        try
+        {
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex)
+        {
+            logger.LogError(ex, "Failed to persist conflict audit row for {AccountId}/{ExternalRef}.",
+                attempted.AccountId, attempted.ExternalRef);
+        }
     }
 
     private Task<MovementEntity?> FindStoredAsync(string accountId, string externalRef, CancellationToken cancellationToken) =>

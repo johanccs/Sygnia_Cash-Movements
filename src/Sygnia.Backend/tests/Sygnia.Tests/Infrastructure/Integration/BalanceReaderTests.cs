@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Sygnia.Domain.Models;
 using Sygnia.Infrastructure.Repositories;
 
@@ -14,7 +15,7 @@ public sealed class BalanceReaderTests(SqlServerFixture fixture)
         var accountId = $"ACC-{Guid.NewGuid():N}"[..10];
         await fixture.SeedAccountAsync(accountId);
 
-        var movementRepository = new MovementRepository(fixture.CreateContext());
+        var movementRepository = new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance);
         await movementRepository.AddAsync(
             new Movement(accountId, "MOV-BAL-01", "ZAR", 1000.00m, OccurredAt, null, Guid.NewGuid(), "jsmith", OccurredAt),
             CancellationToken.None);
