@@ -159,10 +159,18 @@ instead of `SecurityMode.None`.
 
 ## Deliberate scope omissions
 
-- **Redis, Swagger, GitHub Pages** — cut from `planning.md`'s broader scope; not needed to
-  satisfy the assignment brief. Swagger in particular doesn't apply here regardless: it's a
-  REST/OpenAPI tool with no visibility into a binary gRPC service without a separate REST/gRPC
-  gateway, which is out of scope.
+- **Redis, Swagger** — cut from `planning.md`'s broader scope; not needed to satisfy the
+  assignment brief. Swagger in particular doesn't apply here regardless: it's a REST/OpenAPI
+  tool with no visibility into a binary gRPC service without a separate REST/gRPC gateway,
+  which is out of scope.
+- **GitHub Pages** — originally scoped out per root `CLAUDE.md` (listed alongside Redis and
+  Swagger as "Out"). Implemented anyway on 2026-08-16 per explicit user request, as a static
+  landing page served from `/docs` on `main` (`docs/index.html`) advertising the project and
+  linking to the design manual (`docs/Sygnia-Design-Manual.docx`) and the repository. This is a
+  deliberate, requested exception to the root scope decision, not a reversal of the reasoning
+  behind it — the manual grading criteria still don't require it. Enabling Pages itself (repo
+  Settings -> Pages -> source: `main` / `/docs`) is a repo-settings change outside git and was
+  left for the user to flip on.
 - **MediatR / pipeline behaviours** — out at the solution root, but opted back in for
   `Sygnia.Application` specifically (see
   `src/Sygnia.Backend/src/Sygnia.Application/CLAUDE.md`): commands/queries as records, private
