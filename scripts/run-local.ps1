@@ -39,6 +39,10 @@ if ($Stop) {
         }
 
     Write-Host "Bringing docker compose stack down..."
+    # This intentionally tears down the FULL compose project (all 5 services), not just the
+    # subset (`--no-deps sqlserver seq jaeger frontend`) that the start path above brings up —
+    # e.g. it will also stop a `presentation` container if one happens to be running because a
+    # user separately ran a plain `docker compose up -d`.
     docker compose down
 
     Write-Host "Stack stopped."
