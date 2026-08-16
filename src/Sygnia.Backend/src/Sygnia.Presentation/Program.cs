@@ -46,7 +46,6 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 app.UseCors("frontend");
 app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
-app.MapGrpcService<GreeterService>().EnableGrpcWeb();
 app.MapGrpcService<MovementGrpcService>().EnableGrpcWeb();
 app.MapGrpcService<AccountGrpcService>().EnableGrpcWeb();
 app.MapGrpcService<UserGrpcService>().EnableGrpcWeb();

@@ -16,6 +16,14 @@ internal static class ResultExtensions
         new(new Status(ToStatusCode(error.Code), error.Message));
 
     /// <summary>
+    /// Collapses the repeated "throw on failure, else unwrap" pattern gRPC service methods use
+    /// after calling into MediatR: <c>if (result.IsFailure) throw result.Error.ToRpcException();
+    /// return result.Value;</c>.
+    /// </summary>
+    public static T GetOrThrowRpc<T>(this Result<T> result) =>
+        result.IsFailure ? throw result.Error.ToRpcException() : result.Value;
+
+    /// <summary>
     /// Matches on the known <see cref="ErrorCode"/> string first — the enum enumerates every
     /// code the codebase actually raises, and <c>Sygnia.Tests</c> pins each one to its expected
     /// status, so an unmapped new code fails that test rather than silently falling through.

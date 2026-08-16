@@ -128,7 +128,7 @@ internal sealed class MovementRepository(SygniaDbContext db) : IMovementReposito
             // The key we just failed to insert is now missing — a concurrent delete. Not a
             // conflict we can resolve as a replay.
             return Result<Movement>.Failure(new Error(
-            ErrorCode.MovementConflictUnresolved,
+                ErrorCode.MovementConflictUnresolved,
                 $"'{attempted.ExternalRef}' for '{attempted.AccountId}' could not be read back after a key conflict."));
         }
 

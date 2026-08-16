@@ -1,8 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AccountServiceClient } from '../grpc/AccountsServiceClientPb';
-import { Account, CreateAccountRequest, GetAccountRequest, ListAccountsRequest } from '../grpc/accounts_pb';
+import {
+  Account,
+  CreateAccountRequest,
+  GetAccountRequest,
+  ListAccountsRequest,
+  ListAccountsResponse,
+} from '../grpc/accounts_pb';
 import { environment } from '../../environments/environment';
+import { fromGrpcCall } from './grpc-call.util';
 
 /** Plain DTO mirroring the wire Account message, with Timestamps converted to JS Dates. */
 export interface AccountDto {
@@ -41,49 +48,26 @@ export class AccountService {
   constructor(private readonly client: AccountServiceClient) {}
 
   createAccount(input: CreateAccountInput): Observable<AccountDto> {
-    return new Observable(observer => {
-      const req = new CreateAccountRequest();
-      req.setAccountId(input.accountId);
-      req.setAccountName(input.accountName);
-      req.setContactPerson(input.contactPerson);
-      req.setCurrency(input.currency);
-      req.setCreatedBy(input.createdBy);
-      this.client.createAccount(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(mapAccount(res));
-        observer.complete();
-      });
-    });
+    const req = new CreateAccountRequest();
+    req.setAccountId(input.accountId);
+    req.setAccountName(input.accountName);
+    req.setContactPerson(input.contactPerson);
+    req.setCurrency(input.currency);
+    req.setCreatedBy(input.createdBy);
+    return fromGrpcCall((r, cb) => this.client.createAccount(r, {}, cb), req, mapAccount);
   }
 
   getAccount(accountId: string): Observable<AccountDto> {
-    return new Observable(observer => {
-      const req = new GetAccountRequest();
-      req.setAccountId(accountId);
-      this.client.getAccount(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(mapAccount(res));
-        observer.complete();
-      });
-    });
+    const req = new GetAccountRequest();
+    req.setAccountId(accountId);
+    return fromGrpcCall((r, cb) => this.client.getAccount(r, {}, cb), req, mapAccount);
   }
 
   listAccounts(): Observable<AccountDto[]> {
-    return new Observable(observer => {
-      this.client.listAccounts(new ListAccountsRequest(), {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(res.getAccountsList().map(mapAccount));
-        observer.complete();
-      });
-    });
+    return fromGrpcCall(
+      (r, cb) => this.client.listAccounts(r, {}, cb),
+      new ListAccountsRequest(),
+      (res: ListAccountsResponse) => res.getAccountsList().map(mapAccount),
+    );
   }
 }

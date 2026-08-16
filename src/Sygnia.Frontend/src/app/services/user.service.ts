@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { UserServiceClient } from '../grpc/UsersServiceClientPb';
 import { environment } from '../../environments/environment';
 import { CreateUserRequest, GetUserRequest, User } from '../grpc/users_pb';
+import { fromGrpcCall } from './grpc-call.util';
 
 /** Plain DTO mirroring the wire User message. */
 export interface UserDto {
@@ -33,34 +34,16 @@ export class UserService {
   constructor(private readonly client: UserServiceClient) {}
 
   createUser(input: CreateUserInput): Observable<UserDto> {
-    return new Observable(observer => {
-      const req = new CreateUserRequest();
-      req.setId(input.id);
-      req.setName(input.name);
-      req.setSurname(input.surname);
-      this.client.createUser(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(mapUser(res));
-        observer.complete();
-      });
-    });
+    const req = new CreateUserRequest();
+    req.setId(input.id);
+    req.setName(input.name);
+    req.setSurname(input.surname);
+    return fromGrpcCall((r, cb) => this.client.createUser(r, {}, cb), req, mapUser);
   }
 
   getUser(id: string): Observable<UserDto> {
-    return new Observable(observer => {
-      const req = new GetUserRequest();
-      req.setId(id);
-      this.client.getUser(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(mapUser(res));
-        observer.complete();
-      });
-    });
+    const req = new GetUserRequest();
+    req.setId(id);
+    return fromGrpcCall((r, cb) => this.client.getUser(r, {}, cb), req, mapUser);
   }
 }
