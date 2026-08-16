@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  grpcUrl: 'http://localhost:8080', // TODO: point at the real deployed backend URL for production
+  // Matches run-local.ps1, which runs Sygnia.Presentation natively on :5058 (not the
+  // `presentation` container on :8080) so the WCF gateway's TLS endpoint is available too.
+  grpcUrl: 'http://localhost:5058',
 };

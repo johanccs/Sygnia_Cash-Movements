@@ -65,6 +65,17 @@ call would defeat the requirement while every *functional* test still passed, wh
 50k-row test (`StatementReaderTests`) is the load-bearing guard here rather than a correctness
 assertion alone.
 
+**Deliberate scope limit — client-side buffering for the live table and PDF export.** The
+Angular statement view consumes the gRPC-Web stream row by row (never collects the wire stream
+into an array before rendering), but it does accumulate the rows it has *already rendered* into
+one in-memory array, which both the on-screen table and `PdfExportService`'s PDF download read
+from. That array is bounded, not streamed further. This is a conscious trade-off, not an
+oversight: at 50k rows the array is a few megabytes, far below what a browser tab can hold, so
+the failure mode invariant #2 exists to prevent (unbounded memory growth on very large results)
+doesn't apply here. Making PDF generation itself incremental would need a PDF library that can
+write pages as data arrives rather than building the whole document up front — `jsPDF`/
+`autoTable` don't support that — so it was judged not worth the added complexity at this scale.
+
 ## Field-conflict choice
 
 The brief asks: if a repeated `externalRef` differs from the original (different amount,

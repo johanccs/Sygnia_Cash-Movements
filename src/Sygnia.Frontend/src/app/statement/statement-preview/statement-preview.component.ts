@@ -15,7 +15,19 @@ export class StatementPreviewComponent {
 
   readonly lines = input<StatementLineDto[]>([]);
 
+  /**
+   * When set, overrides the default "export exactly the rows currently shown" behaviour —
+   * used by the paginated statement view, where `lines()` is only the visible page and a
+   * "Download PDF" click must instead export the whole account statement, not one page of it.
+   */
+  readonly onDownload = input<(() => void) | null>(null);
+
   downloadPdf(): void {
+    const override = this.onDownload();
+    if (override) {
+      override();
+      return;
+    }
     this.pdfExportService.exportStatement(this.lines());
   }
 }
