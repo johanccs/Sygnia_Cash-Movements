@@ -6,7 +6,6 @@ namespace Sygnia.Application.Interfaces;
 /// Streams movements end to end — implementations must use EF Core's
 /// <c>AsAsyncEnumerable()</c> + <c>AsNoTracking()</c>. A <c>.ToListAsync()</c> anywhere in this
 /// path defeats the 50k-row streaming requirement while every functional test still passes.
-/// TODO: implement in Sygnia.Infrastructure against the EF Core DbContext (not yet created).
 /// </summary>
 public interface IStatementReader
 {

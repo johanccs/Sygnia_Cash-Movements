@@ -3,14 +3,18 @@ import { Observable } from 'rxjs';
 import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import { MovementServiceClient } from '../grpc/MovementsServiceClientPb';
 import { environment } from '../../environments/environment';
+import { fromGrpcCall } from './grpc-call.util';
 import {
   GetBalanceRequest,
+  GetBalanceResponse,
   GetStatementPageRequest,
+  GetStatementPageResponse,
   GetStatementRequest,
   Movement,
   StatementLine,
   SubmitMovementRequest,
   TransferRequest,
+  TransferResponse,
 } from '../grpc/movements_pb';
 
 export interface BalanceDto {
@@ -127,94 +131,74 @@ export class MovementService {
   constructor(private readonly client: MovementServiceClient) {}
 
   submitMovement(input: SubmitMovementInput): Observable<MovementDto | null> {
-    return new Observable(observer => {
-      const req = new SubmitMovementRequest();
-      req.setAccountId(input.accountId);
-      req.setExternalRef(input.externalRef);
-      req.setCurrency(input.currency);
-      req.setAmount(input.amount);
-      req.setOccurredAt(toTimestamp(input.occurredAt));
-      req.setNarration(input.narration);
-      req.setRefNr(input.refNr);
-      req.setMovedBy(input.movedBy);
-      req.setMovedDate(toTimestamp(input.movedDate));
-      this.client.submitMovement(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next(mapMovement(res));
-        observer.complete();
-      });
-    });
+    const req = new SubmitMovementRequest();
+    req.setAccountId(input.accountId);
+    req.setExternalRef(input.externalRef);
+    req.setCurrency(input.currency);
+    req.setAmount(input.amount);
+    req.setOccurredAt(toTimestamp(input.occurredAt));
+    req.setNarration(input.narration);
+    req.setRefNr(input.refNr);
+    req.setMovedBy(input.movedBy);
+    req.setMovedDate(toTimestamp(input.movedDate));
+    return fromGrpcCall(
+      (r, cb) => this.client.submitMovement(r, {}, cb),
+      req,
+      mapMovement,
+    );
   }
 
   transfer(input: TransferInput): Observable<TransferResultDto> {
-    return new Observable(observer => {
-      const req = new TransferRequest();
-      req.setFromAccountId(input.fromAccountId);
-      req.setToAccountId(input.toAccountId);
-      req.setExternalRef(input.externalRef);
-      req.setCurrency(input.currency);
-      req.setAmount(input.amount);
-      req.setOccurredAt(toTimestamp(input.occurredAt));
-      req.setNarration(input.narration);
-      req.setRefNr(input.refNr);
-      req.setMovedBy(input.movedBy);
-      req.setMovedDate(toTimestamp(input.movedDate));
-      this.client.transfer(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next({
-          debit: mapMovement(res.getDebit()),
-          credit: mapMovement(res.getCredit()),
-        });
-        observer.complete();
-      });
-    });
+    const req = new TransferRequest();
+    req.setFromAccountId(input.fromAccountId);
+    req.setToAccountId(input.toAccountId);
+    req.setExternalRef(input.externalRef);
+    req.setCurrency(input.currency);
+    req.setAmount(input.amount);
+    req.setOccurredAt(toTimestamp(input.occurredAt));
+    req.setNarration(input.narration);
+    req.setRefNr(input.refNr);
+    req.setMovedBy(input.movedBy);
+    req.setMovedDate(toTimestamp(input.movedDate));
+    return fromGrpcCall(
+      (r, cb) => this.client.transfer(r, {}, cb),
+      req,
+      (res: TransferResponse) => ({
+        debit: mapMovement(res.getDebit()),
+        credit: mapMovement(res.getCredit()),
+      }),
+    );
   }
 
   getBalance(accountId: string): Observable<BalanceDto> {
-    return new Observable(observer => {
-      const req = new GetBalanceRequest();
-      req.setAccountId(accountId);
-      this.client.getBalance(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next({ accountId: res.getAccountId(), balance: res.getBalance() });
-        observer.complete();
-      });
-    });
+    const req = new GetBalanceRequest();
+    req.setAccountId(accountId);
+    return fromGrpcCall(
+      (r, cb) => this.client.getBalance(r, {}, cb),
+      req,
+      (res: GetBalanceResponse) => ({ accountId: res.getAccountId(), balance: res.getBalance() }),
+    );
   }
 
   getStatementPage(input: GetStatementPageInput): Observable<StatementPageDto> {
-    return new Observable(observer => {
-      const req = new GetStatementPageRequest();
-      req.setAccountId(input.accountId);
-      if (input.from) {
-        req.setFrom(toTimestamp(input.from));
-      }
-      if (input.to) {
-        req.setTo(toTimestamp(input.to));
-      }
-      req.setPageNumber(input.pageNumber);
-      req.setPageSize(input.pageSize);
-      this.client.getStatementPage(req, {}, (err, res) => {
-        if (err) {
-          observer.error(err);
-          return;
-        }
-        observer.next({
-          lines: res.getLinesList().map(mapStatementLine),
-          totalCount: res.getTotalCount(),
-        });
-        observer.complete();
-      });
-    });
+    const req = new GetStatementPageRequest();
+    req.setAccountId(input.accountId);
+    if (input.from) {
+      req.setFrom(toTimestamp(input.from));
+    }
+    if (input.to) {
+      req.setTo(toTimestamp(input.to));
+    }
+    req.setPageNumber(input.pageNumber);
+    req.setPageSize(input.pageSize);
+    return fromGrpcCall(
+      (r, cb) => this.client.getStatementPage(r, {}, cb),
+      req,
+      (res: GetStatementPageResponse) => ({
+        lines: res.getLinesList().map(mapStatementLine),
+        totalCount: res.getTotalCount(),
+      }),
+    );
   }
 
   /**

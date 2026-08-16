@@ -19,10 +19,12 @@ public sealed class ValidationBehaviourTests
         public AlwaysInvalidValidator() => RuleFor(x => x.Value).Empty().WithMessage("must be empty");
     }
 
+    private sealed class AlwaysValidValidator : AbstractValidator<ValidatedPing>;
+
     [Fact]
     public async Task Handle_ValidRequest_CallsNext()
     {
-        var behaviour = new ValidationBehaviour<ValidatedPing, Result<string>>([]);
+        var behaviour = new ValidationBehaviour<ValidatedPing, Result<string>>([new AlwaysValidValidator()]);
 
         var result = await behaviour.Handle(
             new ValidatedPing("x"), () => Task.FromResult(Result<string>.Success("ok")), CancellationToken.None);
@@ -56,5 +58,14 @@ public sealed class ValidationBehaviourTests
         var result = await behaviour.Handle(new UnvalidatedPing(), () => Task.FromResult("pong"), CancellationToken.None);
 
         Assert.Equal("pong", result);
+    }
+
+    [Fact]
+    public async Task Handle_ValidatedRequestWithNoRegisteredValidator_ThrowsInsteadOfSkipping()
+    {
+        var behaviour = new ValidationBehaviour<ValidatedPing, Result<string>>([]);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => behaviour.Handle(
+            new ValidatedPing("x"), () => Task.FromResult(Result<string>.Success("unreachable")), CancellationToken.None));
     }
 }

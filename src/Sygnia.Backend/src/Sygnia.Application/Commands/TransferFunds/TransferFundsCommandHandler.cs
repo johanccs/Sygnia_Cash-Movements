@@ -9,6 +9,9 @@ internal sealed class TransferFundsCommandHandler(
     IMovementRepository movementRepository,
     IAccountRepository accountRepository) : IRequestHandler<TransferFundsCommand, Result<TransferResult>>
 {
+    private const string DebitSuffix = "-DR";
+    private const string CreditSuffix = "-CR";
+
     // Validation runs in ValidationBehaviour<,> before this handler is reached.
     public async Task<Result<TransferResult>> Handle(TransferFundsCommand request, CancellationToken cancellationToken)
     {
@@ -24,8 +27,8 @@ internal sealed class TransferFundsCommandHandler(
             return Result<TransferResult>.Failure(currencyError);
         }
 
-        var debit = BuildLeg(request, request.FromAccountId, "-DR", -request.Amount);
-        var credit = BuildLeg(request, request.ToAccountId, "-CR", request.Amount);
+        var debit = BuildLeg(request, request.FromAccountId, DebitSuffix, -request.Amount);
+        var credit = BuildLeg(request, request.ToAccountId, CreditSuffix, request.Amount);
 
         // Both legs land in one atomic transaction; idempotency on each leg's own
         // (AccountId, ExternalRef) is still enforced by the database, per leg.

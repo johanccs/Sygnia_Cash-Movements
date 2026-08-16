@@ -4,7 +4,6 @@
   <!-- Package versions are centralised in ..\Directory.Packages.props -->
 
   <ItemGroup>
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\movements.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\accounts.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\users.proto" GrpcServices="Server" />

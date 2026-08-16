@@ -31,7 +31,7 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
             request.MovedDate.ToDateTime());
 
         var result = await mediator.Send(command, context.CancellationToken);
-        return result.IsSuccess ? result.Value.ToProto() : throw result.Error.ToRpcException();
+        return result.GetOrThrowRpc().ToProto();
     }
 
     public override async Task<TransferResponse> Transfer(TransferRequest request, ServerCallContext context)
@@ -49,30 +49,23 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
             request.MovedDate.ToDateTime());
 
         var result = await mediator.Send(command, context.CancellationToken);
-        if (result.IsFailure)
-        {
-            throw result.Error.ToRpcException();
-        }
+        var transfer = result.GetOrThrowRpc();
 
         return new TransferResponse
         {
-            Debit = result.Value.Debit.ToProto(),
-            Credit = result.Value.Credit.ToProto(),
+            Debit = transfer.Debit.ToProto(),
+            Credit = transfer.Credit.ToProto(),
         };
     }
 
     public override async Task<GetBalanceResponse> GetBalance(GetBalanceRequest request, ServerCallContext context)
     {
         var result = await mediator.Send(new GetBalanceQuery(request.AccountId), context.CancellationToken);
-        if (result.IsFailure)
-        {
-            throw result.Error.ToRpcException();
-        }
 
         return new GetBalanceResponse
         {
             AccountId = request.AccountId,
-            Balance = result.Value.ToAmountString(),
+            Balance = result.GetOrThrowRpc().ToAmountString(),
         };
     }
 
@@ -111,13 +104,10 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
         var query = BuildStatementPageQuery(request);
 
         var result = await mediator.Send(query, context.CancellationToken);
-        if (result.IsFailure)
-        {
-            throw result.Error.ToRpcException();
-        }
+        var page = result.GetOrThrowRpc();
 
-        var response = new GetStatementPageResponse { TotalCount = result.Value.TotalCount };
-        response.Lines.AddRange(result.Value.Rows.Select(movement => new StatementLine
+        var response = new GetStatementPageResponse { TotalCount = page.TotalCount };
+        response.Lines.AddRange(page.Rows.Select(movement => new StatementLine
         {
             Movement = movement.ToProto(),
         }));
