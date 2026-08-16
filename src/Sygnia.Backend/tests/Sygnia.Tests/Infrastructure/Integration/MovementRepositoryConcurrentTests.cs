@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using Sygnia.Domain.Models;
 using Sygnia.Infrastructure.Repositories;
 
@@ -31,8 +32,8 @@ public sealed class MovementRepositoryConcurrentTests(SqlServerFixture fixture)
             "jsmith",
             OccurredAt);
 
-        var repositoryA = new MovementRepository(fixture.CreateContext());
-        var repositoryB = new MovementRepository(fixture.CreateContext());
+        var repositoryA = new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance);
+        var repositoryB = new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance);
 
         var results = await Task.WhenAll(
             repositoryA.AddAsync(movement, CancellationToken.None),
@@ -58,8 +59,8 @@ public sealed class MovementRepositoryConcurrentTests(SqlServerFixture fixture)
         var first = new Movement(accountId, externalRef, "ZAR", 1000.00m, OccurredAt, null, Guid.NewGuid(), "jsmith", OccurredAt);
         var second = new Movement(accountId, externalRef, "ZAR", 999.00m, OccurredAt, null, Guid.NewGuid(), "jsmith", OccurredAt);
 
-        var repositoryA = new MovementRepository(fixture.CreateContext());
-        var repositoryB = new MovementRepository(fixture.CreateContext());
+        var repositoryA = new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance);
+        var repositoryB = new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance);
 
         var results = await Task.WhenAll(
             repositoryA.AddAsync(first, CancellationToken.None),
@@ -72,5 +73,29 @@ public sealed class MovementRepositoryConcurrentTests(SqlServerFixture fixture)
         await using var db = fixture.CreateContext();
         var rowCount = db.Movements.Count(m => m.AccountId == accountId && m.ExternalRef == externalRef);
         Assert.Equal(1, rowCount);
+    }
+
+    [Fact]
+    public async Task AddAsync_ConflictingSubmission_WritesAuditRowNamingTheConflictingFields()
+    {
+        var accountId = $"ACC-{Guid.NewGuid():N}"[..10];
+        await fixture.SeedAccountAsync(accountId);
+        const string externalRef = "MOV-AUDIT-01";
+
+        var original = new Movement(accountId, externalRef, "ZAR", 1000.00m, OccurredAt, null, Guid.NewGuid(), "jsmith", OccurredAt);
+        var conflicting = new Movement(accountId, externalRef, "ZAR", 999.00m, OccurredAt, null, Guid.NewGuid(), "jsmith", OccurredAt);
+
+        await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance)
+            .AddAsync(original, CancellationToken.None);
+        var result = await new MovementRepository(fixture.CreateContext(), NullLogger<MovementRepository>.Instance)
+            .AddAsync(conflicting, CancellationToken.None);
+
+        Assert.True(result.IsFailure);
+
+        await using var db = fixture.CreateContext();
+        var audit = db.MovementConflictAudits.Single(a => a.AccountId == accountId && a.ExternalRef == externalRef);
+        Assert.Equal(999.00m, audit.AttemptedAmount);
+        Assert.Equal(1000.00m, audit.StoredAmount);
+        Assert.Contains("Amount", audit.ConflictingFields);
     }
 }

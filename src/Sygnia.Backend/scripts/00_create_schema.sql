@@ -109,3 +109,50 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260816203857_AddMovementConflictAudits'
+)
+BEGIN
+    CREATE TABLE [MovementConflictAudits] (
+        [Id] int NOT NULL IDENTITY,
+        [AccountId] nvarchar(10) NOT NULL,
+        [ExternalRef] nvarchar(20) NOT NULL,
+        [AttemptedAmount] DECIMAL(19,4) NOT NULL,
+        [AttemptedCurrency] nvarchar(3) NOT NULL,
+        [AttemptedOccurredAt] datetime2 NOT NULL,
+        [StoredAmount] DECIMAL(19,4) NOT NULL,
+        [StoredCurrency] nvarchar(3) NOT NULL,
+        [StoredOccurredAt] datetime2 NOT NULL,
+        [ConflictingFields] nvarchar(200) NOT NULL,
+        [DetectedAt] datetime2 NOT NULL,
+        CONSTRAINT [PK_MovementConflictAudits] PRIMARY KEY ([Id])
+    );
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260816203857_AddMovementConflictAudits'
+)
+BEGIN
+    CREATE INDEX [IX_MovementConflictAudits_AccountId_ExternalRef] ON [MovementConflictAudits] ([AccountId], [ExternalRef]);
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260816203857_AddMovementConflictAudits'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260816203857_AddMovementConflictAudits', N'8.0.10');
+END;
+GO
+
+COMMIT;
+GO
+
