@@ -50,11 +50,9 @@ public sealed class Account
     public string? ContactPerson { get; }
 
     /// <summary>
-    /// Three-letter ISO 4217 code, e.g. <c>ZAR</c>. Every movement submitted against this
-    /// account must be in this currency — see <c>SubmitMovementCommandHandler</c> and
-    /// <c>TransferFundsCommandHandler</c>, which reject a mismatch as
-    /// <c>movement.currency.invalid</c> rather than letting the balance <c>SUM</c> silently
-    /// mix currencies.
+    /// Three-letter ISO 4217 code, e.g. <c>ZAR</c>. Every movement against this account must
+    /// match it, rejected as <c>movement.currency.invalid</c> if not — otherwise the balance
+    /// <c>SUM</c> would silently mix currencies.
     /// </summary>
     public string Currency { get; }
 
@@ -65,12 +63,7 @@ public sealed class Account
 
     /// <summary>
     /// Returns a copy of this account carrying a new name, or a failure describing why not.
-    /// <para>
-    /// The properties are readonly, so there is nothing to mutate — an update produces a new
-    /// instance and leaves this one untouched. And because this is a method rather than a
-    /// constructor, an invalid name is an expected outcome the caller must handle, not an
-    /// exception.
-    /// </para>
+    /// Properties are readonly, so an update produces a new instance rather than mutating this one.
     /// </summary>
     public Result<Account> WithAccountName(string accountName)
     {

@@ -1,13 +1,8 @@
 namespace Sygnia.Domain;
 
 /// <summary>
-/// The outcome of an operation that is expected to fail sometimes.
-/// <para>
-/// Constructors throw and methods return <see cref="Result{T}"/> — these are not in conflict.
-/// A broken invariant (null account id) is an object that must never exist, so the constructor
-/// refuses. An expected outcome (name too long, duplicate reference) is a value the caller has
-/// to handle, so it comes back here and the compiler makes them look at it.
-/// </para>
+/// The outcome of an operation that is expected to fail sometimes — an expected outcome comes
+/// back as a value the caller must check, unlike a broken invariant, which a constructor throws on.
 /// </summary>
 public sealed class Result<T>
 {

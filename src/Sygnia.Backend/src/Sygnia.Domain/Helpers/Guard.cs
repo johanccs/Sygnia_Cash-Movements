@@ -1,14 +1,8 @@
 namespace Sygnia.Domain;
 
 /// <summary>
-/// Guard clauses shared by the domain models.
-/// <para>
-/// These throw rather than returning a <c>Result</c>, and that is deliberate. A movement
-/// with a null account id is a broken invariant — an object that must never exist — so the
-/// constructor refuses to build it and the type system then guarantees every Movement in
-/// the system is valid. Expected business failures (duplicate reference, unknown account)
-/// are a different category and travel back to the caller as a Result instead.
-/// </para>
+/// Guard clauses shared by the domain models. These throw rather than returning a
+/// <c>Result</c> — a broken invariant must never produce a half-built object.
 /// </summary>
 internal static class Guard
 {
