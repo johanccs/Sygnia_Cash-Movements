@@ -8,8 +8,7 @@ import {
   ListAccountsRequest,
   ListAccountsResponse,
 } from '../grpc/accounts_pb';
-import { environment } from '../../environments/environment';
-import { fromGrpcCall } from './grpc-call.util';
+import { fromGrpcCall, grpcServiceFactory } from './grpc-call.util';
 
 /** Plain DTO mirroring the wire Account message, with Timestamps converted to JS Dates. */
 export interface AccountDto {
@@ -42,7 +41,7 @@ function mapAccount(account: Account): AccountDto {
 
 @Injectable({
   providedIn: 'root',
-  useFactory: () => new AccountService(new AccountServiceClient(environment.grpcUrl)),
+  useFactory: grpcServiceFactory(AccountServiceClient, AccountService),
 })
 export class AccountService {
   constructor(private readonly client: AccountServiceClient) {}

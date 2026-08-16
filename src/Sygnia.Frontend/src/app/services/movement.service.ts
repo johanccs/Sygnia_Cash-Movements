@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import { MovementServiceClient } from '../grpc/MovementsServiceClientPb';
-import { environment } from '../../environments/environment';
-import { fromGrpcCall } from './grpc-call.util';
+import { fromGrpcCall, grpcServiceFactory } from './grpc-call.util';
 import {
   GetBalanceRequest,
   GetBalanceResponse,
@@ -125,7 +124,7 @@ function mapStatementLine(line: StatementLine): StatementLineDto {
 
 @Injectable({
   providedIn: 'root',
-  useFactory: () => new MovementService(new MovementServiceClient(environment.grpcUrl)),
+  useFactory: grpcServiceFactory(MovementServiceClient, MovementService),
 })
 export class MovementService {
   constructor(private readonly client: MovementServiceClient) {}
