@@ -38,7 +38,33 @@
     - create new branch, implement fix and wait for approval
     - once approved, commit change and merge with main
 
+** Additions
+12. Plan to include a wcf in .net 4.8. It should get the same values like balances as using the grpc endpoints.
+13. Plan to create a small wpf application to query the balance. Does not have to be an complext app.
+14. The wpf application view must have a dropdwon list with accounts to select from. The user might know the account id.
+
 ** Modifications
-12. The movement -> there is a move from account but no move to account.
-13. The account should belong to a customer who should be to add more accounts to the same customer
-    - customer -> accounts : one accout to many accounts
+1. Whole application - improve on comments by replacing long comments with shorter, concise, relevant comments.
+2. Investigate xcode complexity. Logic should not be over-engineered and simple.
+3. Cleanup all unneeded files such as unused png, md etc.
+
+4. Review code using supoerpowers skill
+5. Ensure classes only do one function
+6. Give class and method names meaningful values
+7. Methods should not contain more than 15 lines of code
+8. Create a docker compose file to create a docker image of all the projects + database. Should be uploadable to dockerhub.
+9. Also create a script that will:
+    - run the schema and seed script if not run already.
+    - start the Sygnia.Presentation project
+    - start the Sygnia.WcfGateway
+    - stop the above projects
+10. Create an docx manual to explain the high level design. Must include wellformatted diagrams created by draw.io - use draw.io mcp server.
+    - Include activity diagram to explain backend.
+        - Include swimlanes
+        - use color in process shapes
+    - Include sequence diagram
+    - Store the docx in docs folder.
+        - The document should explain the techstack and implementation to a junior developer and non-technical stakeholder.
+        - Create professional document.
+11. Add github pages to advertise the application.
+12. Allow user to download the manual created in point 10 from the github page 

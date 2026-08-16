@@ -27,8 +27,31 @@ services:
       - "16686:16686" # UI
       - "4317:4317"   # OTLP gRPC, matches Otlp:Endpoint in appsettings.json
 
-  # host and SPA services are added once Sygnia.Presentation and Sygnia.Frontend have
-  # Dockerfiles of their own — see the root CLAUDE.md's intended `docker compose up -d`.
+  presentation:
+    build:
+      context: .
+      dockerfile: src/Sygnia.Backend/src/Sygnia.Presentation/Dockerfile
+    image: ${DOCKERHUB_USER:-sygnia}/sygnia-presentation:latest
+    depends_on:
+      - sqlserver
+      - seq
+      - jaeger
+    environment:
+      ConnectionStrings__SygniaCash: "Server=sqlserver;Database=sygnia_cash;User Id=sa;Password=@1Mops4moa;TrustServerCertificate=True;"
+      Seq__ServerUrl: "http://seq:80"
+      Otlp__Endpoint: "http://jaeger:4317"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: src/Sygnia.Frontend/Dockerfile
+    image: ${DOCKERHUB_USER:-sygnia}/sygnia-frontend:latest
+    depends_on:
+      - presentation
+    ports:
+      - "4200:80"
 
 volumes:
   sqlserver-data:
