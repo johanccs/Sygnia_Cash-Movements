@@ -483,3 +483,7 @@ $RECYCLE.BIN/
 
 # Assignment brief — not project deliverable
 docs/Senior_C___NET_Developer__Backend__Assignment.pdf
+
+# Raw planning notes — superseded by docs/project-setup.md and nested CLAUDE.md files
+docs/first_draft.md
+docs/planning.md
