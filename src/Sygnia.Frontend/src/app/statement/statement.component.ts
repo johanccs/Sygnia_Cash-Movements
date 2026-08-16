@@ -1,6 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { GetStatementPageInput, MovementService, StatementPageDto } from '../services/movement.service';
+import {
+  GetStatementPageInput,
+  MovementService,
+  StatementLineDto,
+  StatementPageDto,
+} from '../services/movement.service';
 import { StatementPreviewComponent } from './statement-preview/statement-preview.component';
 import { AccountDto, AccountService } from '../services/account.service';
 
@@ -37,6 +42,14 @@ export class StatementComponent implements OnInit {
   readonly pageNumber = signal(1);
   errorMessage: string | null = null;
 
+  /**
+   * The full, unpaginated statement, populated by streamStatement one row at a time as it
+   * arrives over the wire — never assembled from a buffered array. Kept separate from
+   * currentPage() so the two RPCs (paged vs. streamed) don't fight over the same view state.
+   */
+  readonly streamedLines = signal<StatementLineDto[]>([]);
+  readonly isStreaming = signal(false);
+
   search(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -44,6 +57,36 @@ export class StatementComponent implements OnInit {
     }
     this.pageNumber.set(1);
     this.loadPage(1);
+  }
+
+  streamFullStatement(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { accountId, from, to } = this.form.getRawValue();
+    this.errorMessage = null;
+    this.streamedLines.set([]);
+    this.currentPage.set(null);
+    this.isStreaming.set(true);
+
+    this.movementService
+      .streamStatement({
+        accountId,
+        ...(from ? { from: new Date(from) } : {}),
+        ...(to ? { to: new Date(to) } : {}),
+      })
+      .subscribe({
+        // Appends and renders each row the moment it arrives, rather than waiting for the
+        // stream to finish and setting the whole array once.
+        next: line => this.streamedLines.update(lines => [...lines, line]),
+        error: (err: { message?: string }) => {
+          this.errorMessage = err?.message ?? 'An unexpected error occurred.';
+          this.isStreaming.set(false);
+        },
+        complete: () => this.isStreaming.set(false),
+      });
   }
 
   goToPage(pageNumber: number): void {
@@ -63,6 +106,7 @@ export class StatementComponent implements OnInit {
     const { accountId, from, to } = this.form.getRawValue();
 
     this.errorMessage = null;
+    this.streamedLines.set([]);
 
     const input: GetStatementPageInput = {
       accountId,

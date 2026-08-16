@@ -13,6 +13,6 @@ internal sealed class GetUserQueryHandler(IUserRepository userRepository)
         var user = await userRepository.GetAsync(request.Id, cancellationToken);
         return user is not null
             ? Result<User>.Success(user)
-            : Result<User>.Failure(new Error("user.not_found", $"User '{request.Id}' was not found."));
+            : Result<User>.Failure(new Error(ErrorCode.UserNotFound, $"User '{request.Id}' was not found."));
     }
 }

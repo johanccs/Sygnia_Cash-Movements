@@ -1,4 +1,5 @@
 using MediatR;
+using Sygnia.Application.Behaviours;
 using Sygnia.Domain;
 using Sygnia.Domain.Models;
 
@@ -13,4 +14,7 @@ public sealed record SubmitMovementCommand(
     string? Narration,
     Guid RefNr,
     string MovedBy,
-    DateTime MovedDate) : IRequest<Result<Movement>>;
+    DateTime MovedDate) : IRequest<Result<Movement>>, IValidatedRequest
+{
+    public ErrorCode ValidationErrorCode => ErrorCode.MovementInvalid;
+}

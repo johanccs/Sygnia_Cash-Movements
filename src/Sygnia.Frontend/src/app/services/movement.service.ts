@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 import {
   GetBalanceRequest,
   GetStatementPageRequest,
+  GetStatementRequest,
   Movement,
   StatementLine,
   SubmitMovementRequest,
@@ -81,6 +82,12 @@ export interface GetStatementPageInput {
   to?: Date;
   pageNumber: number;
   pageSize: number;
+}
+
+export interface GetStatementInput {
+  accountId: string;
+  from?: Date;
+  to?: Date;
 }
 
 function toTimestamp(date: Date): Timestamp {
@@ -207,6 +214,33 @@ export class MovementService {
         });
         observer.complete();
       });
+    });
+  }
+
+  /**
+   * Server-streaming GetStatement: the running total covers the full account history, and the
+   * gRPC-Web stream is not buffered — each row is pushed to the caller as soon as it arrives,
+   * per the root CLAUDE.md invariant: "render rows as they arrive, never collect the stream
+   * into an array first." Callers accumulate for display if they need to, but this method
+   * itself never does.
+   */
+  streamStatement(input: GetStatementInput): Observable<StatementLineDto> {
+    return new Observable(observer => {
+      const req = new GetStatementRequest();
+      req.setAccountId(input.accountId);
+      if (input.from) {
+        req.setFrom(toTimestamp(input.from));
+      }
+      if (input.to) {
+        req.setTo(toTimestamp(input.to));
+      }
+
+      const stream = this.client.getStatement(req, {});
+      stream.on('data', line => observer.next(mapStatementLine(line)));
+      stream.on('error', err => observer.error(err));
+      stream.on('end', () => observer.complete());
+
+      return () => stream.cancel();
     });
   }
 }

@@ -34,7 +34,7 @@ public sealed class TransferFundsCommandHandlerTests
     public async Task Handle_ValidTransfer_WritesOppositeSignedLegs()
     {
         var repository = new FakeMovementRepository();
-        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-001", "ACC-002"), new TransferFundsCommandValidator());
+        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-001", "ACC-002"));
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -53,7 +53,7 @@ public sealed class TransferFundsCommandHandlerTests
     public async Task Handle_UnknownFromAccount_ReturnsNotFoundFailure()
     {
         var repository = new FakeMovementRepository();
-        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-002"), new TransferFundsCommandValidator());
+        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-002"));
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -65,7 +65,7 @@ public sealed class TransferFundsCommandHandlerTests
     public async Task Handle_UnknownToAccount_ReturnsNotFoundFailure()
     {
         var repository = new FakeMovementRepository();
-        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-001"), new TransferFundsCommandValidator());
+        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-001"));
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -73,18 +73,9 @@ public sealed class TransferFundsCommandHandlerTests
         Assert.Equal("account.not_found", result.Error.Code);
     }
 
-    [Fact]
-    public async Task Handle_SameFromAndToAccount_ReturnsValidationFailure()
-    {
-        var repository = new FakeMovementRepository();
-        var handler = new TransferFundsCommandHandler(repository, CreateAccounts("ACC-001"), new TransferFundsCommandValidator());
-        var command = CreateCommand() with { ToAccountId = "ACC-001" };
-
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        Assert.True(result.IsFailure);
-        Assert.Equal("transfer.invalid", result.Error.Code);
-    }
+    // Same-from/to-account rejection is now FluentValidation + ValidationBehaviour's job
+    // (see TransferFundsCommandValidatorTests / ValidationBehaviourTests) rather than the
+    // handler's — the handler is called directly here, bypassing the pipeline.
 
     [Fact]
     public async Task Handle_CurrencyMismatchWithFromAccount_ReturnsCurrencyInvalidFailure()
@@ -93,7 +84,7 @@ public sealed class TransferFundsCommandHandlerTests
         var accounts = new FakeAccountRepository();
         accounts.AddExisting("ACC-001", currency: "USD");
         accounts.AddExisting("ACC-002");
-        var handler = new TransferFundsCommandHandler(repository, accounts, new TransferFundsCommandValidator());
+        var handler = new TransferFundsCommandHandler(repository, accounts);
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
@@ -108,11 +99,26 @@ public sealed class TransferFundsCommandHandlerTests
         var accounts = new FakeAccountRepository();
         accounts.AddExisting("ACC-001");
         accounts.AddExisting("ACC-002", currency: "USD");
-        var handler = new TransferFundsCommandHandler(repository, accounts, new TransferFundsCommandValidator());
+        var handler = new TransferFundsCommandHandler(repository, accounts);
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("movement.currency.invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task Handle_CurrencyMismatchDifferentCase_IsStillTreatedAsMismatch()
+    {
+        var repository = new FakeMovementRepository();
+        var accounts = new FakeAccountRepository();
+        accounts.AddExisting("ACC-001", currency: "zar");
+        accounts.AddExisting("ACC-002", currency: "zar");
+        var handler = new TransferFundsCommandHandler(repository, accounts);
+        var command = CreateCommand() with { Currency = "ZAR" };
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
     }
 }

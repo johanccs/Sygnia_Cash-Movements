@@ -35,7 +35,7 @@ internal sealed class UserRepository(SygniaDbContext db) : IUserRepository
         catch (DbUpdateException ex) when (ex.IsDuplicateKeyViolation())
         {
             return Result<User>.Failure(new Error(
-                "user.already_exists",
+                ErrorCode.UserAlreadyExists,
                 $"User '{user.Id}' already exists."));
         }
     }

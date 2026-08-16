@@ -192,4 +192,86 @@ describe('MovementService', () => {
       firstValueFrom(service.getStatementPage({ accountId: 'ACC-404', pageNumber: 1, pageSize: 20 }))
     ).toBeRejectedWith(rpcError);
   });
+
+  /** A minimal fake of grpcWeb.ClientReadableStream<StatementLine> for streamStatement tests. */
+  function createFakeStream() {
+    const handlers: Record<string, Function[]> = { data: [], error: [], end: [] };
+    return {
+      on(event: string, handler: Function) {
+        handlers[event].push(handler);
+        return this;
+      },
+      cancel: jasmine.createSpy('cancel'),
+      emitData(line: StatementLine) {
+        handlers['data'].forEach(h => h(line));
+      },
+      emitEnd() {
+        handlers['end'].forEach(h => h());
+      },
+      emitError(err: unknown) {
+        handlers['error'].forEach(h => h(err));
+      },
+    };
+  }
+
+  it('streamStatement emits one DTO per row as it arrives, never buffering the whole stream first', async () => {
+    const client = jasmine.createSpyObj('MovementServiceClient', ['getStatement']);
+    const fakeStream = createFakeStream();
+    client.getStatement.and.returnValue(fakeStream);
+    const service = new MovementService(client);
+
+    const received: unknown[] = [];
+    service.streamStatement({ accountId: 'ACC-001' }).subscribe(line => received.push(line));
+
+    const first = new Movement();
+    first.setAccountId('ACC-001');
+    first.setAmount('10.00');
+    const firstLine = new StatementLine();
+    firstLine.setMovement(first);
+    firstLine.setRunningTotal('10.00');
+
+    fakeStream.emitData(firstLine);
+    // The first row is rendered immediately after being received — not held back until the
+    // stream completes and a full array is assembled.
+    expect(received.length).toBe(1);
+    expect((received[0] as { runningTotal: string }).runningTotal).toBe('10.00');
+
+    const second = new Movement();
+    second.setAccountId('ACC-001');
+    second.setAmount('5.00');
+    const secondLine = new StatementLine();
+    secondLine.setMovement(second);
+    secondLine.setRunningTotal('15.00');
+
+    fakeStream.emitData(secondLine);
+    expect(received.length).toBe(2);
+
+    fakeStream.emitEnd();
+    expect(received.length).toBe(2);
+  });
+
+  it('propagates errors from streamStatement', async () => {
+    const client = jasmine.createSpyObj('MovementServiceClient', ['getStatement']);
+    const fakeStream = createFakeStream();
+    client.getStatement.and.returnValue(fakeStream);
+    const service = new MovementService(client);
+    const rpcError = { code: 13, message: 'internal' };
+
+    const promise = firstValueFrom(service.streamStatement({ accountId: 'ACC-001' })).catch(err => err);
+    fakeStream.emitError(rpcError);
+
+    await expectAsync(promise).toBeResolvedTo(rpcError);
+  });
+
+  it('streamStatement cancels the underlying stream on unsubscribe', () => {
+    const client = jasmine.createSpyObj('MovementServiceClient', ['getStatement']);
+    const fakeStream = createFakeStream();
+    client.getStatement.and.returnValue(fakeStream);
+    const service = new MovementService(client);
+
+    const subscription = service.streamStatement({ accountId: 'ACC-001' }).subscribe();
+    subscription.unsubscribe();
+
+    expect(fakeStream.cancel).toHaveBeenCalled();
+  });
 });

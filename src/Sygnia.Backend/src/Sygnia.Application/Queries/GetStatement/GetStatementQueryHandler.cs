@@ -22,14 +22,14 @@ internal sealed class GetStatementQueryHandler(
         if (!validation.IsValid)
         {
             var message = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage));
-            yield return StatementLine.WithError(new Error("statement.invalid", message));
+            yield return StatementLine.WithError(new Error(ErrorCode.StatementInvalid, message));
             yield break;
         }
 
         if (!await statementReader.AccountExistsAsync(request.AccountId, cancellationToken))
         {
             yield return StatementLine.WithError(
-                new Error("account.not_found", $"Account '{request.AccountId}' does not exist."));
+                new Error(ErrorCode.AccountNotFound, $"Account '{request.AccountId}' does not exist."));
             yield break;
         }
 

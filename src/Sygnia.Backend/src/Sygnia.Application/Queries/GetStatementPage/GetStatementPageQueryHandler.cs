@@ -21,13 +21,13 @@ internal sealed class GetStatementPageQueryHandler(
         if (!validation.IsValid)
         {
             var message = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage));
-            return Result<StatementPage>.Failure(new Error("statement.invalid", message));
+            return Result<StatementPage>.Failure(new Error(ErrorCode.StatementInvalid, message));
         }
 
         if (!await statementReader.AccountExistsAsync(request.AccountId, cancellationToken))
         {
             return Result<StatementPage>.Failure(
-                new Error("account.not_found", $"Account '{request.AccountId}' does not exist."));
+                new Error(ErrorCode.AccountNotFound, $"Account '{request.AccountId}' does not exist."));
         }
 
         var (rows, totalCount) = await statementReader.GetPageAsync(

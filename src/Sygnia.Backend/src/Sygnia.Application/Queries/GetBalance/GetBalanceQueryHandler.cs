@@ -15,7 +15,7 @@ internal sealed class GetBalanceQueryHandler(
         if (!validation.IsValid)
         {
             var message = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage));
-            return Result<decimal>.Failure(new Error("balance.invalid", message));
+            return Result<decimal>.Failure(new Error(ErrorCode.BalanceInvalid, message));
         }
 
         return await balanceReader.GetBalanceAsync(request.AccountId, cancellationToken);

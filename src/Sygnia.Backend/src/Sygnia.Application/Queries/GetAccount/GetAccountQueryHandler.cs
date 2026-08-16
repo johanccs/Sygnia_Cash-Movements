@@ -13,6 +13,6 @@ internal sealed class GetAccountQueryHandler(IAccountRepository accountRepositor
         var account = await accountRepository.GetAsync(request.AccountId, cancellationToken);
         return account is not null
             ? Result<Account>.Success(account)
-            : Result<Account>.Failure(new Error("account.not_found", $"Account '{request.AccountId}' was not found."));
+            : Result<Account>.Failure(new Error(ErrorCode.AccountNotFound, $"Account '{request.AccountId}' was not found."));
     }
 }

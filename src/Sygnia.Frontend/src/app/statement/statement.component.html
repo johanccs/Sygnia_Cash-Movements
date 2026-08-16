@@ -22,8 +22,16 @@
       <input id="to" type="date" class="form-control form-control-sm" formControlName="to" />
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-3 d-flex gap-2">
       <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Search</button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        [disabled]="form.invalid || isStreaming()"
+        (click)="streamFullStatement()"
+      >
+        {{ isStreaming() ? 'Streaming…' : 'Stream full statement' }}
+      </button>
     </div>
   </form>
 
@@ -33,21 +41,30 @@
     </div>
   }
 
-  @if (currentPage(); as page) {
-    <app-statement-preview [lines]="page.lines" />
+  @if (streamedLines().length > 0 || isStreaming()) {
+    <!-- Rows are appended to streamedLines() as GetStatement delivers them, so this list grows
+         live during the stream rather than appearing only once it completes. -->
+    <app-statement-preview [lines]="streamedLines()" />
+    @if (isStreaming()) {
+      <p class="text-muted">Streaming rows… {{ streamedLines().length }} received so far.</p>
+    }
+  } @else {
+    @if (currentPage(); as page) {
+      <app-statement-preview [lines]="page.lines" />
 
-    <nav aria-label="Statement pagination" class="mt-3">
-      <ul class="pagination">
-        <li class="page-item" [class.disabled]="pageNumber() <= 1">
-          <button type="button" class="page-link" (click)="goToPage(pageNumber() - 1)">Previous</button>
-        </li>
-        <li class="page-item disabled">
-          <span class="page-link">Page {{ pageNumber() }} of {{ totalPages() }}</span>
-        </li>
-        <li class="page-item" [class.disabled]="pageNumber() >= totalPages()">
-          <button type="button" class="page-link" (click)="goToPage(pageNumber() + 1)">Next</button>
-        </li>
-      </ul>
-    </nav>
+      <nav aria-label="Statement pagination" class="mt-3">
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="pageNumber() <= 1">
+            <button type="button" class="page-link" (click)="goToPage(pageNumber() - 1)">Previous</button>
+          </li>
+          <li class="page-item disabled">
+            <span class="page-link">Page {{ pageNumber() }} of {{ totalPages() }}</span>
+          </li>
+          <li class="page-item" [class.disabled]="pageNumber() >= totalPages()">
+            <button type="button" class="page-link" (click)="goToPage(pageNumber() + 1)">Next</button>
+          </li>
+        </ul>
+      </nav>
+    }
   }
 </div>

@@ -16,7 +16,7 @@ internal sealed class BalanceReader(SygniaDbContext db) : IBalanceReader
     {
         if (!await db.Accounts.AsNoTracking().AnyAsync(a => a.AccountId == accountId, cancellationToken))
         {
-            return Result<decimal>.Failure(new Error("account.not_found", $"Account '{accountId}' does not exist."));
+            return Result<decimal>.Failure(new Error(ErrorCode.AccountNotFound, $"Account '{accountId}' does not exist."));
         }
 
         var balance = await db.Movements
