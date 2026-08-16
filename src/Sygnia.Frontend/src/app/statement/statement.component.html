@@ -50,7 +50,7 @@
     }
   } @else {
     @if (currentPage(); as page) {
-      <app-statement-preview [lines]="page.lines" />
+      <app-statement-preview [lines]="page.lines" [onDownload]="exportFullStatementAsPdf" />
 
       <nav aria-label="Statement pagination" class="mt-3">
         <ul class="pagination">

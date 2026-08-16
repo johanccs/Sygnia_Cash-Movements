@@ -8,6 +8,7 @@ import {
 } from '../services/movement.service';
 import { StatementPreviewComponent } from './statement-preview/statement-preview.component';
 import { AccountDto, AccountService } from '../services/account.service';
+import { PdfExportService } from '../services/pdf-export.service';
 
 const PAGE_SIZE = 25;
 
@@ -22,6 +23,7 @@ export class StatementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly movementService = inject(MovementService);
   private readonly accountService = inject(AccountService);
+  private readonly pdfExportService = inject(PdfExportService);
 
   readonly pageSize = PAGE_SIZE;
   accounts: AccountDto[] = [];
@@ -88,6 +90,36 @@ export class StatementComponent implements OnInit {
         complete: () => this.isStreaming.set(false),
       });
   }
+
+  /**
+   * "Download PDF" on the paginated view must export the whole statement, not the one page
+   * on screen — streams it fresh (row by row, per the same streaming contract as
+   * streamFullStatement) into a local array kept out of currentPage()/streamedLines(), so the
+   * on-screen pagination is left untouched, then hands the complete array to PdfExportService.
+   */
+  exportFullStatementAsPdf = (): void => {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { accountId, from, to } = this.form.getRawValue();
+    const lines: StatementLineDto[] = [];
+
+    this.movementService
+      .streamStatement({
+        accountId,
+        ...(from ? { from: new Date(from) } : {}),
+        ...(to ? { to: new Date(to) } : {}),
+      })
+      .subscribe({
+        next: line => lines.push(line),
+        error: (err: { message?: string }) => {
+          this.errorMessage = err?.message ?? 'An unexpected error occurred.';
+        },
+        complete: () => this.pdfExportService.exportStatement(lines),
+      });
+  };
 
   goToPage(pageNumber: number): void {
     if (pageNumber < 1 || pageNumber > this.totalPages()) {
