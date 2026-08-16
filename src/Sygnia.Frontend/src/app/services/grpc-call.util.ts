@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 /**
  * Wraps the generated gRPC-Web client's callback-style unary call
@@ -21,4 +22,15 @@ export function fromGrpcCall<TReq, TRes, TDto>(
       observer.complete();
     });
   });
+}
+
+/**
+ * Builds an Angular `useFactory` that constructs `client, () => new Service(new Client(environment.grpcUrl))`.
+ * Shared by all services under `services/` to avoid repeating the same DI-factory boilerplate.
+ */
+export function grpcServiceFactory<TClient, TService>(
+  ClientCtor: new (url: string) => TClient,
+  ServiceCtor: new (client: TClient) => TService,
+): () => TService {
+  return () => new ServiceCtor(new ClientCtor(environment.grpcUrl));
 }

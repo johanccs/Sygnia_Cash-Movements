@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UserServiceClient } from '../grpc/UsersServiceClientPb';
-import { environment } from '../../environments/environment';
 import { CreateUserRequest, GetUserRequest, User } from '../grpc/users_pb';
-import { fromGrpcCall } from './grpc-call.util';
+import { fromGrpcCall, grpcServiceFactory } from './grpc-call.util';
 
 /** Plain DTO mirroring the wire User message. */
 export interface UserDto {
@@ -28,7 +27,7 @@ function mapUser(user: User): UserDto {
 
 @Injectable({
   providedIn: 'root',
-  useFactory: () => new UserService(new UserServiceClient(environment.grpcUrl)),
+  useFactory: grpcServiceFactory(UserServiceClient, UserService),
 })
 export class UserService {
   constructor(private readonly client: UserServiceClient) {}

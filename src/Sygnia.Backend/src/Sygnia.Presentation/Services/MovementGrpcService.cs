@@ -19,16 +19,11 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
 {
     public override async Task<Movement> SubmitMovement(SubmitMovementRequest request, ServerCallContext context)
     {
+        var fields = MovementFields.From(request.ExternalRef, request.Currency, request.Amount,
+            request.OccurredAt, request.Narration, request.RefNr, request.MovedBy, request.MovedDate);
         var command = new SubmitMovementCommand(
-            request.AccountId,
-            request.ExternalRef,
-            request.Currency,
-            request.Amount.ToDecimalAmount(),
-            request.OccurredAt.ToDateTime(),
-            request.Narration,
-            Guid.Parse(request.RefNr),
-            request.MovedBy,
-            request.MovedDate.ToDateTime());
+            request.AccountId, fields.ExternalRef, fields.Currency, fields.Amount,
+            fields.OccurredAt, fields.Narration, fields.RefNr, fields.MovedBy, fields.MovedDate);
 
         var result = await mediator.Send(command, context.CancellationToken);
         return result.GetOrThrowRpc().ToProto();
@@ -36,17 +31,11 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
 
     public override async Task<TransferResponse> Transfer(TransferRequest request, ServerCallContext context)
     {
+        var fields = MovementFields.From(request.ExternalRef, request.Currency, request.Amount,
+            request.OccurredAt, request.Narration, request.RefNr, request.MovedBy, request.MovedDate);
         var command = new TransferFundsCommand(
-            request.FromAccountId,
-            request.ToAccountId,
-            request.ExternalRef,
-            request.Currency,
-            request.Amount.ToDecimalAmount(),
-            request.OccurredAt.ToDateTime(),
-            request.Narration,
-            Guid.Parse(request.RefNr),
-            request.MovedBy,
-            request.MovedDate.ToDateTime());
+            request.FromAccountId, request.ToAccountId, fields.ExternalRef, fields.Currency, fields.Amount,
+            fields.OccurredAt, fields.Narration, fields.RefNr, fields.MovedBy, fields.MovedDate);
 
         var result = await mediator.Send(command, context.CancellationToken);
         var transfer = result.GetOrThrowRpc();
@@ -124,4 +113,16 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
             request.To is null ? DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) : request.To.ToDateTime(),
             request.PageNumber,
             request.PageSize);
+
+    /// <summary>The wire fields shared by <see cref="SubmitMovementRequest"/> and <see cref="TransferRequest"/>, converted once.</summary>
+    private readonly record struct MovementFields(
+        string ExternalRef, string Currency, decimal Amount, DateTime OccurredAt,
+        string Narration, Guid RefNr, string MovedBy, DateTime MovedDate)
+    {
+        public static MovementFields From(
+            string externalRef, string currency, string amount, Timestamp occurredAt,
+            string narration, string refNr, string movedBy, Timestamp movedDate) =>
+            new(externalRef, currency, amount.ToDecimalAmount(), occurredAt.ToDateTime(),
+                narration, Guid.Parse(refNr), movedBy, movedDate.ToDateTime());
+    }
 }
