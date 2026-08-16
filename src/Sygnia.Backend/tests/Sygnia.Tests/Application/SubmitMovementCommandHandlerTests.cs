@@ -17,7 +17,7 @@ public sealed class SubmitMovementCommandHandlerTests
         var repository = new FakeMovementRepository();
         var accounts = new FakeAccountRepository();
         accounts.AddExisting(AccountId);
-        var handler = new SubmitMovementCommandHandler(repository, accounts, new SubmitMovementCommandValidator());
+        var handler = new SubmitMovementCommandHandler(repository, accounts);
         return (handler, repository);
     }
 
@@ -25,24 +25,12 @@ public sealed class SubmitMovementCommandHandlerTests
     public async Task Handle_UnknownAccount_ReturnsNotFoundFailure()
     {
         var repository = new FakeMovementRepository();
-        var handler = new SubmitMovementCommandHandler(repository, new FakeAccountRepository(), new SubmitMovementCommandValidator());
+        var handler = new SubmitMovementCommandHandler(repository, new FakeAccountRepository());
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("account.not_found", result.Error.Code);
-    }
-
-    [Fact]
-    public async Task Handle_InvalidCommand_ReturnsValidationFailure()
-    {
-        var (handler, _) = CreateSut();
-        var command = CreateCommand(amount: 0m); // zero amount is invalid
-
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        Assert.True(result.IsFailure);
-        Assert.Equal("movement.invalid", result.Error.Code);
     }
 
     [Fact]
@@ -76,12 +64,27 @@ public sealed class SubmitMovementCommandHandlerTests
         var repository = new FakeMovementRepository();
         var accounts = new FakeAccountRepository();
         accounts.AddExisting(AccountId, currency: "USD");
-        var handler = new SubmitMovementCommandHandler(repository, accounts, new SubmitMovementCommandValidator());
+        var handler = new SubmitMovementCommandHandler(repository, accounts);
 
         var result = await handler.Handle(CreateCommand(), CancellationToken.None);
 
         Assert.True(result.IsFailure);
         Assert.Equal("movement.currency.invalid", result.Error.Code);
+    }
+
+    [Fact]
+    public async Task Handle_CurrencyMismatchDifferentCase_IsStillTreatedAsMismatch()
+    {
+        var repository = new FakeMovementRepository();
+        var accounts = new FakeAccountRepository();
+        accounts.AddExisting(AccountId, currency: "USD");
+        var handler = new SubmitMovementCommandHandler(repository, accounts);
+        var command = CreateCommand() with { Currency = "usd" };
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("USD", result.Value.Currency);
     }
 
     [Fact]

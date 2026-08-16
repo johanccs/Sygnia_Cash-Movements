@@ -1,4 +1,5 @@
 using MediatR;
+using Sygnia.Application.Behaviours;
 using Sygnia.Domain;
 using Sygnia.Domain.Models;
 
@@ -9,4 +10,7 @@ public sealed record CreateAccountCommand(
     string AccountName,
     string? ContactPerson,
     string Currency,
-    string CreatedBy) : IRequest<Result<Account>>;
+    string CreatedBy) : IRequest<Result<Account>>, IValidatedRequest
+{
+    public ErrorCode ValidationErrorCode => ErrorCode.AccountInvalid;
+}

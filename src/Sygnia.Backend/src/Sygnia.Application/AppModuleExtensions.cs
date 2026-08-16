@@ -24,6 +24,7 @@ public static class AppModuleExtensions
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
         services.AddScoped<IValidator<SubmitMovementCommand>, SubmitMovementCommandValidator>();
         services.AddScoped<IValidator<TransferFundsCommand>, TransferFundsCommandValidator>();

@@ -1,4 +1,5 @@
 using MediatR;
+using Sygnia.Application.Behaviours;
 using Sygnia.Domain;
 
 namespace Sygnia.Application.Commands.TransferFunds;
@@ -20,7 +21,10 @@ public sealed record TransferFundsCommand(
     string? Narration,
     Guid RefNr,
     string MovedBy,
-    DateTime MovedDate) : IRequest<Result<TransferResult>>;
+    DateTime MovedDate) : IRequest<Result<TransferResult>>, IValidatedRequest
+{
+    public ErrorCode ValidationErrorCode => ErrorCode.TransferInvalid;
+}
 
 /// <summary>The two legs written atomically by a <see cref="TransferFundsCommand"/>.</summary>
 public sealed record TransferResult(Domain.Models.Movement Debit, Domain.Models.Movement Credit);

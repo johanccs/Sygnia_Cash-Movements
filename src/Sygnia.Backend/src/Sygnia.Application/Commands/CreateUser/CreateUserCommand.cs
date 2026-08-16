@@ -1,7 +1,12 @@
 using MediatR;
+using Sygnia.Application.Behaviours;
 using Sygnia.Domain;
 using Sygnia.Domain.Models;
 
 namespace Sygnia.Application.Commands.CreateUser;
 
-public sealed record CreateUserCommand(string Id, string Name, string Surname) : IRequest<Result<User>>;
+public sealed record CreateUserCommand(string Id, string Name, string Surname)
+    : IRequest<Result<User>>, IValidatedRequest
+{
+    public ErrorCode ValidationErrorCode => ErrorCode.UserInvalid;
+}
