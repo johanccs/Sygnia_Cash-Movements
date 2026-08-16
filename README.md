@@ -20,6 +20,40 @@ follows.
 
 ## Run it locally
 
+### Quick start: one script
+
+Two PowerShell scripts bring up the full stack (SQL Server, Seq, Jaeger, frontend, schema +
+seed data applied automatically) in one command — skip to
+[Run it locally, step by step](#1-start-infrastructure) if you'd rather run each piece
+yourself, or need the WCF gateway / WPF client, which neither script starts.
+
+**`scripts/run-local.ps1`** — builds the backend and frontend images locally from source:
+
+```powershell
+pwsh scripts/run-local.ps1          # start everything
+pwsh scripts/run-local.ps1 -Stop    # stop everything
+```
+
+Sygnia.Presentation runs **natively** here (not containerized) on `https://localhost:7110` /
+`http://localhost:5058`, so the WCF gateway's TLS endpoint is available if you start it
+separately afterwards (see below). The frontend is served at `http://localhost:4200`.
+
+**`scripts/run-dockerhub.ps1`** — pulls the published `9032/sygnia-presentation` and
+`9032/sygnia-frontend` images from Docker Hub instead of building, so it needs no local
+`dotnet`/`ng` build step at all:
+
+```powershell
+pwsh scripts/run-dockerhub.ps1                          # pull + start everything
+pwsh scripts/run-dockerhub.ps1 -DockerHubUser someuser   # override the image namespace
+pwsh scripts/run-dockerhub.ps1 -Stop                     # stop everything
+```
+
+Sygnia.Presentation runs **containerized** here, on `http://localhost:8080` — the WCF gateway
+and WPF client are not started by this script (they need the native TLS endpoint that only
+`run-local.ps1` provides).
+
+### Run it locally, step by step
+
 ### 1. Start infrastructure
 
 From the repo root:
