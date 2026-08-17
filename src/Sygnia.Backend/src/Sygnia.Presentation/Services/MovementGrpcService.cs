@@ -63,7 +63,12 @@ internal sealed class MovementGrpcService(IMediator mediator) : MovementService.
         IServerStreamWriter<StatementLine> responseStream,
         ServerCallContext context)
     {
-        var query = new GetStatementQuery(request.AccountId, request.From.ToDateTime(), request.To.ToDateTime());
+        // From/To are optional here too (same as GetStatementPage) — an unset Timestamp field
+        // comes back as a null reference, not a default instance.
+        var query = new GetStatementQuery(
+            request.AccountId,
+            request.From is null ? DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc) : request.From.ToDateTime(),
+            request.To is null ? DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc) : request.To.ToDateTime());
 
         // Streams end to end — never buffers into a list before writing. Each line is written
         // to the wire as it's produced by the handler.

@@ -1,0 +1,15 @@
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+  @for (message of toastService.messages(); track message.id) {
+    <div class="toast show align-items-center text-bg-dark border-0" role="status" aria-live="polite">
+      <div class="d-flex">
+        <div class="toast-body">{{ message.text }}</div>
+        <button
+          type="button"
+          class="btn-close btn-close-white me-2 m-auto"
+          aria-label="Close"
+          (click)="toastService.dismiss(message.id)"
+        ></button>
+      </div>
+    </div>
+  }
+</div>

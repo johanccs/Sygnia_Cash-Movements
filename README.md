@@ -78,7 +78,7 @@ or run the equivalent SQL script directly (e.g. in SSMS or `sqlcmd`) against a f
 `sygnia_cash` database — useful when you don't have the EF tooling installed:
 
 ```bash
-sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i src/Sygnia.Backend/scripts/00_create_schema.sql
+sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i scripts/00_create_schema.sql
 ```
 
 ### 3. Seed data
@@ -86,9 +86,9 @@ sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i src/Sygnia.Backend/s
 Run in order — each script is safe to re-run:
 
 ```bash
-sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i src/Sygnia.Backend/scripts/01_seed_accounts.sql
-sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i src/Sygnia.Backend/scripts/02_seed_users.sql
-sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i src/Sygnia.Backend/scripts/03_seed_statement_50000.sql
+sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i scripts/01_seed_accounts.sql
+sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i scripts/02_seed_users.sql
+sqlcmd -S localhost -U sa -P "@1Mops4moa" -d sygnia_cash -i scripts/03_seed_statement_50000.sql
 ```
 
 `01`/`02` seed two accounts (`ACC-001`, `ACC-002`) and three users. `03` seeds 50,000+ movements

@@ -1,15 +1,17 @@
 <#
 .SYNOPSIS
-    Starts (or stops) the Sygnia stack entirely from published Docker Hub images —
-    sqlserver, seq, jaeger, presentation, frontend — with no local build step.
+    Starts (or stops) the Sygnia stack entirely from published Docker Hub images -
+    sqlserver, seq, jaeger, presentation, frontend - with no local build step.
 
-    Unlike run-local.ps1, Sygnia.Presentation runs as the `presentation` container here
-    (pulled from Docker Hub, listening on http://localhost:8080), not natively. That means
-    Sygnia.Wcf.Gateway and Sygnia.WpfClient are NOT started by this script: the gateway's
-    App.config targets https://localhost:7110 for WinHTTP's HTTP/2 ALPN negotiation, which
-    only the native `dotnet run` profile serves (see run-local.ps1's synopsis) — the
-    container only exposes cleartext h2c on :8080. Use run-local.ps1 instead if you need
-    the WCF gateway or WPF client.
+    Sygnia.Presentation runs as the `presentation` container here (pulled from Docker Hub,
+    listening on http://localhost:8080), same as before. The gateway's App.config targets
+    https://localhost:7110 for WinHTTP's HTTP/2 ALPN negotiation, which the container does
+    NOT serve (it only exposes cleartext h2c on :8080) - so this script additionally starts
+    a second, native copy of Sygnia.Presentation (`dotnet run --launch-profile https`,
+    :7110/:5058) purely to give Sygnia.Wcf.Gateway a TLS endpoint to call, then starts
+    Sygnia.Wcf.Gateway and Sygnia.WpfClient natively, same as run-local.ps1. Ports don't
+    collide (container :8080, native :7110/:5058), so both copies of Presentation run side
+    by side.
 
 .USAGE
     pwsh scripts/run-dockerhub.ps1                          # pull + start everything
@@ -22,14 +24,27 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# PowerShell 7.3+ otherwise turns a native command's non-zero exit code into a terminating
+# error honouring $ErrorActionPreference, regardless of output redirection - which would abort
+# the readiness retry loops below on their very first (expected) failed attempt.
+if ($PSVersionTable.PSVersion -ge [version]"7.3") {
+    $PSNativeCommandUseErrorActionPreference = $false
+}
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
 $env:DOCKERHUB_USER = $DockerHubUser
 $sqlPassword = '@1Mops4moa'
 $backendRoot = "src/Sygnia.Backend"
-$scriptsDir  = "$backendRoot/scripts"
+$scriptsDir  = "scripts"
 
 if ($Stop) {
+    Write-Host "Stopping native processes..."
+    Get-Process -Name "Sygnia.Presentation","Sygnia.Wcf.Gateway","Sygnia.WpfClient" -ErrorAction SilentlyContinue |
+        ForEach-Object {
+            try { $_ | Stop-Process -Force -ErrorAction Stop }
+            catch { Write-Warning "Could not stop $($_.ProcessName) (PID $($_.Id)): $($_.Exception.Message)" }
+        }
+
     Write-Host "Bringing docker compose stack down..."
     docker compose down
     Write-Host "Stack stopped."
@@ -68,7 +83,7 @@ docker exec sygnia-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa 
 if ($LASTEXITCODE -ne 0) { throw "Failed to ensure sygnia_cash database exists." }
 
 # On a persisted volume, an existing sygnia_cash database can still be finishing recovery for a
-# moment after `master` starts accepting connections — wait until it reports ONLINE.
+# moment after `master` starts accepting connections - wait until it reports ONLINE.
 $dbOnline = $false
 for ($i = 0; $i -lt $maxAttempts; $i++) {
     $state = docker exec sygnia-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P $sqlPassword -C -h -1 -Q `
@@ -83,7 +98,7 @@ if (-not $dbOnline) {
     throw "sygnia_cash database did not come online in time."
 }
 
-# Apply schema + seed scripts — same idempotent .sql files run-local.ps1 uses.
+# Apply schema + seed scripts - same idempotent .sql files run-local.ps1 uses.
 $sqlFiles = @(
     "00_create_schema.sql",
     "01_seed_accounts.sql",
@@ -104,9 +119,42 @@ foreach ($file in $sqlFiles) {
 }
 Write-Host "Schema and seed data applied."
 
+function Wait-ForPort {
+    param([int]$Port, [int]$TimeoutSeconds = 60)
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline) {
+        $connection = Test-NetConnection -ComputerName "localhost" -Port $Port -WarningAction SilentlyContinue
+        if ($connection.TcpTestSucceeded) { return $true }
+        Start-Sleep -Seconds 2
+    }
+    return $false
+}
+
+Write-Host "Starting native Sygnia.Presentation (TLS endpoint for the WCF gateway)..."
+# launchSettings.json's "https" profile listens on both https://localhost:7110 and
+# http://localhost:5058 - the gateway needs :7110 for WinHTTP's HTTP/2 ALPN negotiation,
+# which the container's cleartext :8080 endpoint can't provide.
+Start-Process -FilePath "dotnet" -ArgumentList "run --project $backendRoot/src/Sygnia.Presentation --launch-profile https" -PassThru | Out-Null
+
+# A cold `dotnet run` build can take well over a minute; starting the gateway before
+# Presentation is actually listening on :7110 fails with WinHTTP error 12029
+# ("A connection with the server could not be established").
+Write-Host "Waiting for native Sygnia.Presentation to become ready on :7110..."
+if (-not (Wait-ForPort -Port 7110 -TimeoutSeconds 120)) {
+    throw "Sygnia.Presentation did not start listening on :7110 in time."
+}
+Write-Host "Sygnia.Presentation is ready."
+
+Write-Host "Starting Sygnia.Wcf.Gateway..."
+Start-Process -FilePath "dotnet" -ArgumentList "run --project $backendRoot/src/Sygnia.Wcf.Gateway" -PassThru | Out-Null
+
+Write-Host "Starting Sygnia.WpfClient..."
+Start-Process -FilePath "dotnet" -ArgumentList "run --project src/Sygnia.WpfClient" -PassThru | Out-Null
+
 Write-Host ""
 Write-Host "Stack is up (all from Docker Hub images, namespace '$DockerHubUser'):"
 Write-Host "  - sqlserver, seq, jaeger"
-Write-Host "  - presentation (http://localhost:8080)"
+Write-Host "  - presentation container (http://localhost:8080)"
 Write-Host "  - frontend (http://localhost:4200)"
-Write-Host "Wcf.Gateway/WpfClient not started — see script synopsis. Run with -Stop to shut everything down."
+Write-Host "  - native: Sygnia.Presentation (https://localhost:7110, http://localhost:5058), Sygnia.Wcf.Gateway, Sygnia.WpfClient"
+Write-Host "Run with -Stop to shut everything down."

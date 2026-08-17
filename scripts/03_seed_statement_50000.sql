@@ -31,8 +31,21 @@ SELECT
     @accountId,
     CONCAT('MOV-SEED-', RIGHT('00000' + CAST(N AS varchar(5)), 5)),
     'ZAR',
-    -- Alternates deposit/withdrawal so the running total moves in both directions.
-    CASE WHEN N % 2 = 0 THEN 100.00 ELSE -40.00 END,
+    -- A 10-value repeating cycle (deterministic, not RAND()/NEWID()-driven, so the amounts are
+    -- reproducible) mixing small and large deposits/withdrawals so the running total and
+    -- balance math get exercised across realistic order-of-magnitude swings, not just ±one value.
+    CASE (N % 10)
+        WHEN 0 THEN 15000.00
+        WHEN 1 THEN -8250.50
+        WHEN 2 THEN 320.75
+        WHEN 3 THEN -95.00
+        WHEN 4 THEN 4200.00
+        WHEN 5 THEN -1750.25
+        WHEN 6 THEN 60.10
+        WHEN 7 THEN -12500.00
+        WHEN 8 THEN 875.35
+        ELSE -430.60
+    END,
     DATEADD(MINUTE, N, @start),
     'Seeded statement row',
     NEWID(),

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { StatementComponent } from './statement.component';
 import { GetStatementPageInput, MovementService, StatementPageDto } from '../services/movement.service';
@@ -33,7 +33,7 @@ describe('StatementComponent', () => {
   };
 
   beforeEach(async () => {
-    movementServiceSpy = jasmine.createSpyObj('MovementService', ['getStatementPage']);
+    movementServiceSpy = jasmine.createSpyObj('MovementService', ['getStatementPage', 'streamStatement']);
     movementServiceSpy.getStatementPage.and.returnValue(of(page));
     accountServiceSpy = jasmine.createSpyObj('AccountService', ['listAccounts']);
     accountServiceSpy.listAccounts.and.returnValue(of([]));
@@ -102,5 +102,21 @@ describe('StatementComponent', () => {
 
     const input: GetStatementPageInput = movementServiceSpy.getStatementPage.calls.mostRecent().args[0];
     expect(input.pageNumber).toBe(2);
+  });
+
+  it('shows the progress bar while streaming and hides it once the stream completes', () => {
+    const stream$ = new Subject<{ movement: null; runningTotal: string | null }>();
+    movementServiceSpy.streamStatement.and.returnValue(stream$.asObservable());
+    component.form.setValue({ accountId: 'ACC-001', from: '', to: '' });
+
+    component.streamFullStatement();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.progress'))).toBeTruthy();
+
+    stream$.complete();
+    fixture.detectChanges();
+
+    expect(fixture.debugElement.query(By.css('.progress'))).toBeFalsy();
   });
 });

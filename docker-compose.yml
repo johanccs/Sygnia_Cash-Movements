@@ -50,6 +50,11 @@ services:
     image: ${DOCKERHUB_USER:-sygnia}/sygnia-frontend:latest
     depends_on:
       - presentation
+    environment:
+      # run-local.ps1 overrides this to http://localhost:5058 (native Presentation);
+      # run-dockerhub.ps1 leaves the default, matching the `presentation` container's
+      # published port below.
+      GRPC_URL: ${GRPC_URL:-http://localhost:8080}
     ports:
       - "4200:80"
 
