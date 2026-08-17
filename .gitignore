@@ -491,3 +491,6 @@ docs/planning.md
 # Local-only scratch material — kept on disk, never pushed
 docs/Output_Topics.md
 docs/image.png
+
+# Standalone screenshot source files - embedded copies already live inside docs/Sygnia-Design-Manual.docx
+docs/screenshots/
