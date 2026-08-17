@@ -1,11 +1,22 @@
 <div class="statement-preview">
   <div class="d-flex justify-content-end mb-2">
-    <button type="button" class="btn btn-outline-secondary btn-sm download-pdf" (click)="downloadPdf()">
+    <button
+      type="button"
+      class="btn btn-outline-secondary btn-sm download-pdf"
+      (click)="downloadPdf()"
+      appTooltip="Download this statement as a PDF"
+    >
       Download PDF
     </button>
   </div>
 
-  <table class="table table-striped table-sm">
+  <!-- Header lives in its own table so it stays fixed above the scrolling body. Both tables
+       share the same colgroup widths so columns line up. -->
+  <table class="table table-striped table-sm mb-0 statement-header-table">
+    <colgroup>
+      <col class="col-date" /><col class="col-ref" /><col class="col-currency" />
+      <col class="col-amount" /><col class="col-narration" /><col class="col-running-total" />
+    </colgroup>
     <thead>
       <tr>
         <th scope="col">Date</th>
@@ -13,18 +24,32 @@
         <th scope="col">Currency</th>
         <th scope="col">Amount</th>
         <th scope="col">Narration</th>
+        <!-- Only the streamed view (GetStatement) computes a real running total — a page-scoped
+             total from GetStatementPage would be misleading, so those rows carry runningTotal:
+             null and this column reads as blank for them rather than showing a wrong number. -->
+        <th scope="col">Running Total</th>
       </tr>
     </thead>
-    <tbody>
-      @for (line of lines(); track line.movement?.externalRef) {
-        <tr>
+  </table>
+
+  <!-- Only rows near the viewport exist in the DOM, however many are in lines() — this is what
+       keeps a 50,000+ row streamed statement from crashing the tab (see component doc comment). -->
+  <cdk-virtual-scroll-viewport itemSize="37" class="statement-viewport">
+    <table class="table table-striped table-sm mb-0">
+      <colgroup>
+        <col class="col-date" /><col class="col-ref" /><col class="col-currency" />
+        <col class="col-amount" /><col class="col-narration" /><col class="col-running-total" />
+      </colgroup>
+      <tbody>
+        <tr *cdkVirtualFor="let line of lines(); trackBy: trackByExternalRef">
           <td>{{ line.movement?.occurredAt | date: 'yyyy-MM-dd' }}</td>
           <td>{{ line.movement?.externalRef }}</td>
           <td>{{ line.movement?.currency }}</td>
           <td>{{ line.movement?.amount }}</td>
           <td>{{ line.movement?.narration }}</td>
+          <td>{{ line.runningTotal ?? '—' }}</td>
         </tr>
-      }
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </cdk-virtual-scroll-viewport>
 </div>

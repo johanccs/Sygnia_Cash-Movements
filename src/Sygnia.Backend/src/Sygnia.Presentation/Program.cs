@@ -35,6 +35,7 @@ builder.Services.AddGrpcReflection(); // Dev-only: lets tools like Postman/grpcu
 builder.Services.AddCors(o => o.AddPolicy("frontend", p => p
     .WithOrigins("http://localhost:4200")
     .AllowAnyHeader()
+    .AllowAnyMethod()
     .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding")));
 builder.Services.Register(); // Sygnia.Application: MediatR, validators, logging pipeline
 builder.Services.AddInfrastructure(

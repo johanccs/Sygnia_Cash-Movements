@@ -39,6 +39,15 @@ describe('StatementPreviewComponent', () => {
     },
   ];
 
+  // cdk-virtual-scroll-viewport computes its visible range asynchronously (ResizeObserver/rAF),
+  // so every test that reads rendered rows must let the fixture settle before asserting.
+  async function setLinesAndSettle(value: StatementLineDto[]): Promise<void> {
+    fixture.componentRef.setInput('lines', value);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
     pdfExportServiceSpy = jasmine.createSpyObj('PdfExportService', ['exportStatement']);
 
@@ -48,8 +57,7 @@ describe('StatementPreviewComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(StatementPreviewComponent);
-    fixture.componentRef.setInput('lines', lines);
-    fixture.detectChanges();
+    await setLinesAndSettle(lines);
   });
 
   it('renders one row per line', () => {
@@ -72,11 +80,49 @@ describe('StatementPreviewComponent', () => {
     expect(pdfExportServiceSpy.exportStatement).toHaveBeenCalledWith(lines);
   });
 
-  it('renders no rows for an empty input', () => {
-    fixture.componentRef.setInput('lines', []);
-    fixture.detectChanges();
+  it('renders no rows for an empty input', async () => {
+    await setLinesAndSettle([]);
 
     const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
     expect(rows.length).toBe(0);
+  });
+
+  it('renders a real running total for streamed lines and a blank placeholder for paged lines (null)', async () => {
+    const streamed: StatementLineDto[] = [{ ...lines[0], runningTotal: '100.00' }];
+    await setLinesAndSettle(streamed);
+
+    const cells = fixture.debugElement.queryAll(By.css('tbody tr td'));
+    expect(cells[cells.length - 1].nativeElement.textContent.trim()).toBe('100.00');
+
+    await setLinesAndSettle([lines[0]]); // runningTotal: null
+
+    const nullCells = fixture.debugElement.queryAll(By.css('tbody tr td'));
+    expect(nullCells[nullCells.length - 1].nativeElement.textContent.trim()).toBe('—');
+  });
+
+  it('keeps the DOM row count bounded for a 50,000-row statement (virtual scroll)', async () => {
+    const manyLines: StatementLineDto[] = Array.from({ length: 50_000 }, (_, i) => ({
+      movement: {
+        accountId: 'ACC-001',
+        externalRef: `MOV-SEED-${i}`,
+        currency: 'ZAR',
+        amount: '100.00',
+        occurredAt: new Date('2024-01-01T00:00:00Z'),
+        narration: 'Seeded statement row',
+        refNr: `ref-${i}`,
+        movedBy: 'seed-script',
+        movedDate: new Date('2024-01-01T00:00:00Z'),
+      },
+      runningTotal: '100.00',
+    }));
+
+    await setLinesAndSettle(manyLines);
+
+    const rows = fixture.debugElement.queryAll(By.css('tbody tr'));
+    // Only rows near the viewport should ever be in the DOM, regardless of how many are in
+    // lines() — this is the whole point of virtualizing (see component doc comment). A fixed
+    // upper bound well under 50,000 proves the table isn't rendering every row.
+    expect(rows.length).toBeLessThan(100);
+    expect(rows.length).toBeGreaterThan(0);
   });
 });

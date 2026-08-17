@@ -1,0 +1,32 @@
+.statement-header-table,
+.statement-viewport table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.col-date {
+  width: 12%;
+}
+.col-ref {
+  width: 20%;
+}
+.col-currency {
+  width: 10%;
+}
+.col-amount {
+  width: 13%;
+}
+.col-narration {
+  width: 30%;
+}
+.col-running-total {
+  width: 15%;
+}
+
+// Fixed height so cdk-virtual-scroll-viewport can compute a visible range; itemSize (37px)
+// must match the actual rendered row height (table-sm padding + line height) or scrolling
+// desyncs from row position.
+.statement-viewport {
+  height: 60vh;
+  min-height: 300px;
+}

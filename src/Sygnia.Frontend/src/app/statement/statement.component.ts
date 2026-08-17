@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { bufferTime } from 'rxjs';
 import {
   GetStatementPageInput,
   MovementService,
@@ -9,13 +10,14 @@ import {
 import { StatementPreviewComponent } from './statement-preview/statement-preview.component';
 import { AccountDto, AccountService } from '../services/account.service';
 import { PdfExportService } from '../services/pdf-export.service';
+import { TooltipDirective } from '../shared/directives/tooltip.directive';
 
 const PAGE_SIZE = 25;
 
 @Component({
   selector: 'app-statement',
   standalone: true,
-  imports: [ReactiveFormsModule, StatementPreviewComponent],
+  imports: [ReactiveFormsModule, StatementPreviewComponent, TooltipDirective],
   templateUrl: './statement.component.html',
   styleUrl: './statement.component.scss',
 })
@@ -79,10 +81,18 @@ export class StatementComponent implements OnInit {
         ...(from ? { from: new Date(from) } : {}),
         ...(to ? { to: new Date(to) } : {}),
       })
+      // Rows still arrive over the wire one at a time — bufferTime only throttles how often the
+      // UI re-renders. Without it, `streamedLines.update(lines => [...lines, line])` once per
+      // row means an ever-growing array copy plus a full table re-render on every single one of
+      // 50,000+ rows: an O(n²) client-side cost that dwarfs the ~500ms the server actually takes
+      // to stream the whole thing. Batching into 100ms windows cuts that to a few dozen updates.
+      .pipe(bufferTime(100))
       .subscribe({
-        // Appends and renders each row the moment it arrives, rather than waiting for the
-        // stream to finish and setting the whole array once.
-        next: line => this.streamedLines.update(lines => [...lines, line]),
+        next: batch => {
+          if (batch.length > 0) {
+            this.streamedLines.update(lines => [...lines, ...batch]);
+          }
+        },
         error: (err: { message?: string }) => {
           this.errorMessage = err?.message ?? 'An unexpected error occurred.';
           this.isStreaming.set(false);
