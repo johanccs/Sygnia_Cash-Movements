@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MovementDto, MovementService, TransferResultDto } from '../services/movement.service';
 import { AccountDto, AccountService } from '../services/account.service';
+import { UserDto, UserService } from '../services/user.service';
 import { MAJOR_CURRENCIES } from '../shared/currencies';
 
 type Tab = 'submit' | 'transfer';
@@ -21,15 +22,20 @@ export class MovementComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly movementService = inject(MovementService);
   private readonly accountService = inject(AccountService);
+  private readonly userService = inject(UserService);
 
   readonly currencies = MAJOR_CURRENCIES;
   accounts: AccountDto[] = [];
+  users: UserDto[] = [];
 
   activeTab: Tab = 'submit';
 
   ngOnInit(): void {
     this.accountService.listAccounts().subscribe(accounts => {
       this.accounts = accounts;
+    });
+    this.userService.listUsers().subscribe(users => {
+      this.users = users;
     });
   }
 

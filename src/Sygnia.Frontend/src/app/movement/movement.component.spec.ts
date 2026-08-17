@@ -4,21 +4,26 @@ import { of, throwError } from 'rxjs';
 import { MovementComponent } from './movement.component';
 import { MovementDto, MovementService } from '../services/movement.service';
 import { AccountService } from '../services/account.service';
+import { UserService } from '../services/user.service';
 
 describe('MovementComponent', () => {
   let movementServiceSpy: jasmine.SpyObj<MovementService>;
   let accountServiceSpy: jasmine.SpyObj<AccountService>;
+  let userServiceSpy: jasmine.SpyObj<UserService>;
 
   beforeEach(async () => {
     movementServiceSpy = jasmine.createSpyObj('MovementService', ['submitMovement', 'transfer']);
     accountServiceSpy = jasmine.createSpyObj('AccountService', ['listAccounts']);
     accountServiceSpy.listAccounts.and.returnValue(of([]));
+    userServiceSpy = jasmine.createSpyObj('UserService', ['listUsers']);
+    userServiceSpy.listUsers.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [MovementComponent, ReactiveFormsModule],
       providers: [
         { provide: MovementService, useValue: movementServiceSpy },
         { provide: AccountService, useValue: accountServiceSpy },
+        { provide: UserService, useValue: userServiceSpy },
       ],
     }).compileComponents();
   });
@@ -31,6 +36,28 @@ describe('MovementComponent', () => {
   it('defaults to the Submit Movement tab', () => {
     const fixture = TestBed.createComponent(MovementComponent);
     expect(fixture.componentInstance.activeTab).toBe('submit');
+  });
+
+  it('populates the Moved By dropdown from UserService and stores the selected user id', () => {
+    userServiceSpy.listUsers.and.returnValue(
+      of([
+        { id: 'teller1', name: 'Jane', surname: 'Doe' },
+        { id: 'teller2', name: 'John', surname: 'Smith' },
+      ]),
+    );
+
+    const fixture = TestBed.createComponent(MovementComponent);
+    fixture.detectChanges();
+
+    const select: HTMLSelectElement = fixture.nativeElement.querySelector('#submitMovedBy');
+    const options = Array.from(select.options).map(o => o.value);
+    expect(options).toContain('teller1');
+    expect(options).toContain('teller2');
+
+    select.value = 'teller2';
+    select.dispatchEvent(new Event('change'));
+
+    expect(fixture.componentInstance.submitForm.value.movedBy).toBe('teller2');
   });
 
   it('switches tabs when setActiveTab is called', () => {

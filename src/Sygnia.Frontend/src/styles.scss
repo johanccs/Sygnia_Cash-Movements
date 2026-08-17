@@ -61,6 +61,12 @@ h1 {
 .btn-primary {
   background-color: var(--accent);
   border-color: var(--accent);
+  // Bootstrap's disabled state reads --bs-btn-disabled-bg, a value baked at Sass build time
+  // rather than derived from --bs-primary at runtime — without this, disabled buttons fall
+  // back to Bootstrap's default blue regardless of the .btn-primary override above, since
+  // .btn:disabled (two class-level selectors) otherwise outranks .btn-primary (one).
+  --bs-btn-disabled-bg: var(--accent);
+  --bs-btn-disabled-border-color: var(--accent);
 }
 .btn-primary:hover,
 .btn-primary:focus {

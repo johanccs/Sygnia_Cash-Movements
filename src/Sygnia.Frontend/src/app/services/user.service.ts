@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UserServiceClient } from '../grpc/UsersServiceClientPb';
-import { CreateUserRequest, GetUserRequest, User } from '../grpc/users_pb';
+import { CreateUserRequest, GetUserRequest, ListUsersRequest, ListUsersResponse, User } from '../grpc/users_pb';
 import { fromGrpcCall, grpcServiceFactory } from './grpc-call.util';
 
 /** Plain DTO mirroring the wire User message. */
@@ -44,5 +44,13 @@ export class UserService {
     const req = new GetUserRequest();
     req.setId(id);
     return fromGrpcCall((r, cb) => this.client.getUser(r, {}, cb), req, mapUser);
+  }
+
+  listUsers(): Observable<UserDto[]> {
+    return fromGrpcCall(
+      (r, cb) => this.client.listUsers(r, {}, cb),
+      new ListUsersRequest(),
+      (res: ListUsersResponse) => res.getUsersList().map(mapUser),
+    );
   }
 }

@@ -2,6 +2,7 @@ using Grpc.Core;
 using MediatR;
 using Sygnia.Application.Commands.CreateUser;
 using Sygnia.Application.Queries.GetUser;
+using Sygnia.Application.Queries.ListUsers;
 using Sygnia.Presentation.Mapping;
 
 namespace Sygnia.Presentation.Services;
@@ -25,5 +26,13 @@ internal sealed class UserGrpcService(IMediator mediator) : UserService.UserServ
     {
         var result = await mediator.Send(new GetUserQuery(request.Id), context.CancellationToken);
         return result.IsSuccess ? result.Value.ToProto() : throw result.Error.ToRpcException();
+    }
+
+    public override async Task<ListUsersResponse> ListUsers(ListUsersRequest request, ServerCallContext context)
+    {
+        var users = await mediator.Send(new ListUsersQuery(), context.CancellationToken);
+        var response = new ListUsersResponse();
+        response.Users.AddRange(users.Select(u => u.ToProto()));
+        return response;
     }
 }

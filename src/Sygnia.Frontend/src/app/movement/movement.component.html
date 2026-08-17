@@ -74,7 +74,12 @@
 
         <div class="mb-3">
           <label for="submitMovedBy" class="form-label">Moved By</label>
-          <input id="submitMovedBy" type="text" class="form-control form-control-sm" formControlName="movedBy" />
+          <select id="submitMovedBy" class="form-select form-select-sm" formControlName="movedBy">
+            <option value="" disabled>Select user</option>
+            @for (user of users; track user.id) {
+              <option [value]="user.id">{{ user.name }} {{ user.surname }} ({{ user.id }})</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">
@@ -160,7 +165,12 @@
 
         <div class="mb-3">
           <label for="transferMovedBy" class="form-label">Moved By</label>
-          <input id="transferMovedBy" type="text" class="form-control form-control-sm" formControlName="movedBy" />
+          <select id="transferMovedBy" class="form-select form-select-sm" formControlName="movedBy">
+            <option value="" disabled>Select user</option>
+            @for (user of users; track user.id) {
+              <option [value]="user.id">{{ user.name }} {{ user.surname }} ({{ user.id }})</option>
+            }
+          </select>
         </div>
 
         <div class="mb-3">

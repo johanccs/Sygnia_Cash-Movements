@@ -125,5 +125,48 @@ export class UserServiceClient {
     this.methodDescriptorGetUser);
   }
 
+  methodDescriptorListUsers = new grpcWeb.MethodDescriptor(
+    '/users.UserService/ListUsers',
+    grpcWeb.MethodType.UNARY,
+    users_pb.ListUsersRequest,
+    users_pb.ListUsersResponse,
+    (request: users_pb.ListUsersRequest) => {
+      return request.serializeBinary();
+    },
+    users_pb.ListUsersResponse.deserializeBinary
+  );
+
+  listUsers(
+    request: users_pb.ListUsersRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<users_pb.ListUsersResponse>;
+
+  listUsers(
+    request: users_pb.ListUsersRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: users_pb.ListUsersResponse) => void): grpcWeb.ClientReadableStream<users_pb.ListUsersResponse>;
+
+  listUsers(
+    request: users_pb.ListUsersRequest,
+    metadata?: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: users_pb.ListUsersResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/users.UserService/ListUsers',
+        request,
+        metadata || {},
+        this.methodDescriptorListUsers,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/users.UserService/ListUsers',
+    request,
+    metadata || {},
+    this.methodDescriptorListUsers);
+  }
+
 }
 
