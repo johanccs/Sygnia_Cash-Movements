@@ -17,7 +17,7 @@ describe('NavComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders routerLinks for Home, Accounts, User, and Statement', () => {
+  it('renders routerLinks for Home, Accounts, Movement, Balance, Statement, and User', () => {
     const fixture = TestBed.createComponent(NavComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
@@ -29,9 +29,11 @@ describe('NavComponent', () => {
 
     expect(linkTargets).toContain('/');
     expect(linkTargets).toContain('/accounts');
+    expect(linkTargets).toContain('/movement');
+    expect(linkTargets).toContain('/balance');
     expect(linkTargets).toContain('/user');
     expect(linkTargets).toContain('/statement');
-    expect(links.length).toBe(4);
+    expect(links.length).toBe(6);
   });
 
   it('gives each nav link routerLinkActive="active"', () => {

@@ -43,11 +43,23 @@
       <tbody>
         <tr *cdkVirtualFor="let line of lines(); trackBy: trackByExternalRef">
           <td>{{ line.movement?.occurredAt | date: 'yyyy-MM-dd' }}</td>
-          <td>{{ line.movement?.externalRef }}</td>
+          <td class="ledger-id">{{ line.movement?.externalRef }}</td>
           <td>{{ line.movement?.currency }}</td>
-          <td>{{ line.movement?.amount }}</td>
+          <td
+            class="ledger-amount"
+            [class.is-positive]="!line.movement?.amount?.startsWith('-')"
+            [class.is-negative]="line.movement?.amount?.startsWith('-')"
+          >
+            {{ line.movement?.amount }}
+          </td>
           <td>{{ line.movement?.narration }}</td>
-          <td>{{ line.runningTotal ?? '—' }}</td>
+          <td
+            class="ledger-amount"
+            [class.is-positive]="line.runningTotal && !line.runningTotal.startsWith('-')"
+            [class.is-negative]="line.runningTotal?.startsWith('-')"
+          >
+            {{ line.runningTotal ?? '—' }}
+          </td>
         </tr>
       </tbody>
     </table>

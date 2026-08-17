@@ -6,7 +6,26 @@
   height: 1.5rem;
   margin-right: 0.35rem;
   border-radius: 0.35rem;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: #fff;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 600;
   font-size: 0.95rem;
+}
+
+:host ::ng-deep .navbar {
+  background-color: var(--ink) !important;
+  font-family: var(--font-body);
+}
+
+:host ::ng-deep .navbar-brand {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+:host ::ng-deep .nav-link.active {
+  color: #fff !important;
+  border-bottom: 2px solid var(--gold);
 }

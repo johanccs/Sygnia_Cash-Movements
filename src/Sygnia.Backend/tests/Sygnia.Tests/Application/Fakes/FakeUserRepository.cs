@@ -26,4 +26,7 @@ public sealed class FakeUserRepository : IUserRepository
 
         return Task.FromResult(Result<User>.Success(user));
     }
+
+    public Task<IReadOnlyList<User>> ListAsync(CancellationToken cancellationToken) =>
+        Task.FromResult<IReadOnlyList<User>>(_stored.Values.OrderBy(u => u.Id).ToList());
 }

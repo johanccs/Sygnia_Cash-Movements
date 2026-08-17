@@ -39,4 +39,14 @@ internal sealed class UserRepository(SygniaDbContext db) : IUserRepository
                 $"User '{user.Id}' already exists."));
         }
     }
+
+    public async Task<IReadOnlyList<User>> ListAsync(CancellationToken cancellationToken)
+    {
+        var entities = await db.Users
+            .AsNoTracking()
+            .OrderBy(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        return entities.Select(e => e.ToDomain()).ToList();
+    }
 }

@@ -1,1 +1,139 @@
 /* You can add global styles to this file, and also import other style files */
+
+// ---------------------------------------------------------------------------
+// Design tokens — a ledger/register aesthetic: warm paper background, deep
+// ink-navy chrome, a single stamp-teal accent for primary actions and
+// positive figures, a rust-red for negative figures and errors. Financial
+// data (amounts, ids, refs) always renders in a monospace "ledger numeral"
+// treatment — see .ledger-amount / .ledger-id below. This is the one
+// consistent signature carried across every page.
+:root {
+  --ink: #10182b;
+  --ink-soft: #4a5568;
+  --paper: #faf8f3;
+  --paper-card: #ffffff;
+  --accent: #1f6f5c;
+  --accent-soft: #e3efe9;
+  --rust: #9a3b2e;
+  --rust-soft: #f5e6e2;
+  --line: #e2ded2;
+  --gold: #b8863b;
+
+  --font-display: 'Fraunces', 'Georgia', serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  // Re-point Bootstrap's own variables at the token set above so its
+  // components (buttons, form focus rings, links) pick up the palette
+  // without needing a full selector-by-selector override.
+  --bs-primary: var(--accent);
+  --bs-primary-rgb: 31, 111, 92;
+  --bs-body-font-family: var(--font-body);
+  --bs-body-bg: var(--paper);
+  --bs-body-color: var(--ink);
+  --bs-border-color: var(--line);
+  --bs-link-color: var(--accent);
+  --bs-link-hover-color: #164e3f;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+h1 {
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--gold);
+  display: inline-block;
+}
+
+// Buttons: Bootstrap's --bs-primary repoint covers most of .btn-primary, but
+// the hover/focus states and outline variant need the accent explicitly.
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  // Bootstrap's disabled state reads --bs-btn-disabled-bg, a value baked at Sass build time
+  // rather than derived from --bs-primary at runtime — without this, disabled buttons fall
+  // back to Bootstrap's default blue regardless of the .btn-primary override above, since
+  // .btn:disabled (two class-level selectors) otherwise outranks .btn-primary (one).
+  --bs-btn-disabled-bg: var(--accent);
+  --bs-btn-disabled-border-color: var(--accent);
+}
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #164e3f;
+  border-color: #164e3f;
+}
+.btn-outline-secondary {
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+.btn-outline-secondary:hover {
+  background-color: var(--ink);
+  border-color: var(--ink);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.2rem var(--accent-soft);
+}
+
+// "Ledger card" — the recurring container for forms and tables: a plain
+// white card on the warm paper background, marked with a left tab of
+// accent colour like a ledger folder tab, rather than a generic bootstrap
+// card border.
+.ledger-card {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 0.25rem;
+  padding: 1.75rem;
+}
+
+// Financial figures — amounts, account ids, external refs, running totals —
+// always render as monospace tabular numerals, colour-coded by sign where
+// the sign carries meaning (deposit vs withdrawal). This is the one visual
+// idea repeated everywhere money appears in the app.
+.ledger-amount,
+.ledger-id {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95em;
+}
+.ledger-amount.is-positive {
+  color: var(--accent);
+}
+.ledger-amount.is-negative {
+  color: var(--rust);
+}
+
+.alert-success {
+  background-color: var(--accent-soft);
+  border-color: var(--accent);
+  color: #164e3f;
+}
+.alert-danger {
+  background-color: var(--rust-soft);
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+.table > thead {
+  font-family: var(--font-body);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 2px solid var(--line);
+}

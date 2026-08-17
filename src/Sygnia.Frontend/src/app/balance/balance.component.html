@@ -1,0 +1,34 @@
+<div class="container pt-2 pb-5">
+  <h1 class="display-6 mb-4">Balance</h1>
+
+  <div class="ledger-card col-md-6">
+    <form [formGroup]="form" (ngSubmit)="onCheckBalance()">
+      <div class="mb-3">
+        <label for="balanceAccountId" class="form-label">Account Id</label>
+        <select id="balanceAccountId" class="form-select form-select-sm" formControlName="accountId">
+          <option value="" disabled>Select account</option>
+          @for (account of accounts; track account.accountId) {
+            <option [value]="account.accountId">{{ account.accountName }} ({{ account.accountId }})</option>
+          }
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid">Check Balance</button>
+    </form>
+
+    @if (balance) {
+      <div class="alert alert-success mt-4" role="alert">
+        Balance for <strong class="ledger-id">{{ balance.accountId }}</strong>:
+        <span class="ledger-amount" [class.is-positive]="!balance.balance.startsWith('-')" [class.is-negative]="balance.balance.startsWith('-')">
+          {{ balance.balance }}
+        </span>
+      </div>
+    }
+
+    @if (errorMessage) {
+      <div class="alert alert-danger mt-4" role="alert">
+        {{ errorMessage }}
+      </div>
+    }
+  </div>
+</div>

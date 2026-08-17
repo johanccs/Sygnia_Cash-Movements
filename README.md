@@ -9,6 +9,19 @@ See [`docs/SOLUTION.md`](docs/SOLUTION.md) for the design, trade-offs and delibe
 omissions, and [`CLAUDE.md`](CLAUDE.md) for the architecture and coding standards this repo
 follows.
 
+## Fastest way to run this
+
+No `dotnet`/`ng`/Docker build step, nothing to configure — pulls prebuilt images and seeds data
+automatically:
+
+```powershell
+pwsh scripts/run-dockerhub.ps1
+```
+
+Then open `http://localhost:4200`. Needs Docker Desktop running; see
+[Prerequisites](#prerequisites) below. Everything else in this file is for building from source,
+running pieces individually, or the optional legacy gateway/desktop client.
+
 ## Prerequisites
 
 - [.NET SDK 8.0.319](https://dotnet.microsoft.com/download/dotnet/8.0) — pinned by
@@ -22,25 +35,13 @@ follows.
 
 ### Quick start: one script
 
-Two PowerShell scripts bring up the full stack (SQL Server, Seq, Jaeger, frontend, schema +
-seed data applied automatically) in one command — skip to
-[Run it locally, step by step](#1-start-infrastructure) if you'd rather run each piece
-yourself, or need the WCF gateway / WPF client, which neither script starts.
-
-**`scripts/run-local.ps1`** — builds the backend and frontend images locally from source:
-
-```powershell
-pwsh scripts/run-local.ps1          # start everything
-pwsh scripts/run-local.ps1 -Stop    # stop everything
-```
-
-Sygnia.Presentation runs **natively** here (not containerized) on `https://localhost:7110` /
-`http://localhost:5058`, so the WCF gateway's TLS endpoint is available if you start it
-separately afterwards (see below). The frontend is served at `http://localhost:4200`.
+Two PowerShell scripts bring up the full stack in one command — SQL Server, Seq, Jaeger, the
+backend, the frontend, the WCF gateway and WPF client, with schema + seed data applied
+automatically. Skip to [Run it locally, step by step](#1-start-infrastructure) if you'd rather
+run each piece yourself.
 
 **`scripts/run-dockerhub.ps1`** — pulls the published `9032/sygnia-presentation` and
-`9032/sygnia-frontend` images from Docker Hub instead of building, so it needs no local
-`dotnet`/`ng` build step at all:
+`9032/sygnia-frontend` images from Docker Hub, no local `dotnet`/`ng` build step needed:
 
 ```powershell
 pwsh scripts/run-dockerhub.ps1                          # pull + start everything
@@ -48,9 +49,23 @@ pwsh scripts/run-dockerhub.ps1 -DockerHubUser someuser   # override the image na
 pwsh scripts/run-dockerhub.ps1 -Stop                     # stop everything
 ```
 
-Sygnia.Presentation runs **containerized** here, on `http://localhost:8080` — the WCF gateway
-and WPF client are not started by this script (they need the native TLS endpoint that only
-`run-local.ps1` provides).
+Sygnia.Presentation runs **containerized**, on `http://localhost:8080` — that's what the
+frontend (`http://localhost:4200`) talks to. The script *also* starts a second, native copy of
+Sygnia.Presentation (`https://localhost:7110` / `http://localhost:5058`) purely so the WCF
+gateway and WPF client have the TLS endpoint they need; both start automatically alongside the
+container.
+
+**`scripts/run-local.ps1`** — builds the frontend image locally and runs the backend natively
+from source (needed for local development, since the container only exposes cleartext HTTP/2):
+
+```powershell
+pwsh scripts/run-local.ps1          # start everything
+pwsh scripts/run-local.ps1 -Stop    # stop everything
+```
+
+Sygnia.Presentation runs **natively** here on `https://localhost:7110` / `http://localhost:5058`
+— the frontend (`http://localhost:4200`) talks to that native instance. The WCF gateway and WPF
+client also start automatically.
 
 ### Run it locally, step by step
 
@@ -106,6 +121,9 @@ Traces flow to Jaeger, structured logs to Seq and the console.
 
 ### Run the WCF gateway (optional, Task 3)
 
+Already running if you used `run-local.ps1` or `run-dockerhub.ps1` above — both start it
+automatically. The steps below are for the manual, step-by-step path.
+
 `Sygnia.Wcf.Gateway` is a minimal legacy NetTcp gateway exposing one `GetBalance` operation. It
 calls into the same backend as the gRPC API — by acting as a gRPC client itself — so both entry
 points return identical balances for identical data.
@@ -126,6 +144,8 @@ and the NetTcp address it listens on) are configurable in
 `src/Sygnia.Backend/src/Sygnia.Wcf.Gateway/App.config`.
 
 ### Run the WPF client (optional)
+
+Already running if you used `run-local.ps1` or `run-dockerhub.ps1` above.
 
 `Sygnia.WpfClient` is a minimal desktop app that queries the WCF gateway's `GetBalance`
 operation — the "legacy tool" side of the demo. Windows only.
@@ -184,10 +204,11 @@ required for `dotnet test` itself.
 ## Repository layout
 
 ```
+scripts/                  run-local.ps1, run-dockerhub.ps1, and the SQL schema (00) + seed (01-03)
+                           scripts they apply against SQL Server
 src/
 ├─ Sygnia.Frontend/       Angular 18 SPA — gRPC-Web client
 └─ Sygnia.Backend/        .NET 8 solution (Domain → Application → Infrastructure/Presentation)
-    ├─ scripts/           schema creation (00) + seed data (01-03), run against SQL Server
     ├─ src/                Sygnia.Domain, Sygnia.Application, Sygnia.Infrastructure, Sygnia.Presentation
     └─ tests/Sygnia.Tests/ unit + integration tests
 ```

@@ -14,4 +14,7 @@ public interface IUserRepository
     /// rather than an exception.
     /// </summary>
     Task<Result<User>> CreateAsync(User user, CancellationToken cancellationToken);
+
+    /// <summary>Returns every user, ordered by <see cref="User.Id"/>.</summary>
+    Task<IReadOnlyList<User>> ListAsync(CancellationToken cancellationToken);
 }

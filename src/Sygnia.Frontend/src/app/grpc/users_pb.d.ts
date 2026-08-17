@@ -72,3 +72,37 @@ export namespace GetUserRequest {
   }
 }
 
+export class ListUsersRequest extends jspb.Message {
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListUsersRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: ListUsersRequest): ListUsersRequest.AsObject;
+  static serializeBinaryToWriter(message: ListUsersRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListUsersRequest;
+  static deserializeBinaryFromReader(message: ListUsersRequest, reader: jspb.BinaryReader): ListUsersRequest;
+}
+
+export namespace ListUsersRequest {
+  export type AsObject = {
+  }
+}
+
+export class ListUsersResponse extends jspb.Message {
+  getUsersList(): Array<User>;
+  setUsersList(value: Array<User>): ListUsersResponse;
+  clearUsersList(): ListUsersResponse;
+  addUsers(value?: User, index?: number): User;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ListUsersResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: ListUsersResponse): ListUsersResponse.AsObject;
+  static serializeBinaryToWriter(message: ListUsersResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ListUsersResponse;
+  static deserializeBinaryFromReader(message: ListUsersResponse, reader: jspb.BinaryReader): ListUsersResponse;
+}
+
+export namespace ListUsersResponse {
+  export type AsObject = {
+    usersList: Array<User.AsObject>,
+  }
+}
+
