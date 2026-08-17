@@ -1,19 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-  BalanceDto,
-  MovementDto,
-  MovementService,
-  TransferResultDto,
-} from '../services/movement.service';
-import { AccountDto, AccountService } from '../services/account.service';
-import { MAJOR_CURRENCIES } from '../shared/currencies';
-
-type Tab = 'submit' | 'transfer' | 'balance';
+import { UserDto, UserService } from '../services/user.service';
 
 /**
- * refNr is auto-generated client-side via crypto.randomUUID() rather than typed by the user —
- * it is a GUID identifying the movement itself, not something a user would reasonably compose.
+ * Creates the "normal user" record referenced by Movement.MovedBy — the person a submitted
+ * movement or transfer is attributed to for audit purposes. Performing movements and checking
+ * balance/statement are their own top-level pages now; this page only manages the user
+ * records those actions get attributed to, not the actions themselves.
  */
 @Component({
   selector: 'app-user',
@@ -22,145 +15,35 @@ type Tab = 'submit' | 'transfer' | 'balance';
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
 })
-export class UserComponent implements OnInit {
+export class UserComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly movementService = inject(MovementService);
-  private readonly accountService = inject(AccountService);
+  private readonly userService = inject(UserService);
 
-  readonly currencies = MAJOR_CURRENCIES;
-  accounts: AccountDto[] = [];
-
-  activeTab: Tab = 'submit';
-
-  ngOnInit(): void {
-    this.accountService.listAccounts().subscribe(accounts => {
-      this.accounts = accounts;
-    });
-  }
-
-  setActiveTab(tab: Tab): void {
-    this.activeTab = tab;
-  }
-
-  readonly submitForm = this.fb.nonNullable.group({
-    accountId: ['', Validators.required],
-    externalRef: ['', Validators.required],
-    currency: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
-    amount: ['', Validators.required],
-    occurredAt: ['', Validators.required],
-    narration: ['', Validators.required],
-    refNr: [crypto.randomUUID() as string, Validators.required],
-    movedBy: ['', Validators.required],
-    movedDate: [new Date().toISOString().slice(0, 10), Validators.required],
+  readonly form = this.fb.nonNullable.group({
+    id: ['', Validators.required],
+    name: ['', Validators.required],
+    surname: ['', Validators.required],
   });
 
-  submittedMovement: MovementDto | null = null;
-  submitErrorMessage: string | null = null;
+  createdUser: UserDto | null = null;
+  errorMessage: string | null = null;
 
-  onSubmitMovement(): void {
-    if (this.submitForm.invalid) {
-      this.submitForm.markAllAsTouched();
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
-    this.submittedMovement = null;
-    this.submitErrorMessage = null;
+    this.createdUser = null;
+    this.errorMessage = null;
 
-    const raw = this.submitForm.getRawValue();
-    this.movementService
-      .submitMovement({
-        accountId: raw.accountId,
-        externalRef: raw.externalRef,
-        currency: raw.currency,
-        amount: raw.amount,
-        occurredAt: new Date(raw.occurredAt),
-        narration: raw.narration,
-        refNr: raw.refNr,
-        movedBy: raw.movedBy,
-        movedDate: new Date(raw.movedDate),
-      })
-      .subscribe({
-        next: movement => {
-          this.submittedMovement = movement;
-        },
-        error: (err: { message?: string }) => {
-          this.submitErrorMessage = err?.message ?? 'An unexpected error occurred.';
-        },
-      });
-  }
-
-  readonly transferForm = this.fb.nonNullable.group({
-    fromAccountId: ['', Validators.required],
-    toAccountId: ['', Validators.required],
-    externalRef: ['', Validators.required],
-    currency: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(3)]],
-    amount: ['', Validators.required],
-    occurredAt: ['', Validators.required],
-    narration: ['', Validators.required],
-    refNr: [crypto.randomUUID() as string, Validators.required],
-    movedBy: ['', Validators.required],
-    movedDate: [new Date().toISOString().slice(0, 10), Validators.required],
-  });
-
-  transferResult: TransferResultDto | null = null;
-  transferErrorMessage: string | null = null;
-
-  onTransfer(): void {
-    if (this.transferForm.invalid) {
-      this.transferForm.markAllAsTouched();
-      return;
-    }
-
-    this.transferResult = null;
-    this.transferErrorMessage = null;
-
-    const raw = this.transferForm.getRawValue();
-    this.movementService
-      .transfer({
-        fromAccountId: raw.fromAccountId,
-        toAccountId: raw.toAccountId,
-        externalRef: raw.externalRef,
-        currency: raw.currency,
-        amount: raw.amount,
-        occurredAt: new Date(raw.occurredAt),
-        narration: raw.narration,
-        refNr: raw.refNr,
-        movedBy: raw.movedBy,
-        movedDate: new Date(raw.movedDate),
-      })
-      .subscribe({
-        next: result => {
-          this.transferResult = result;
-        },
-        error: (err: { message?: string }) => {
-          this.transferErrorMessage = err?.message ?? 'An unexpected error occurred.';
-        },
-      });
-  }
-
-  readonly balanceForm = this.fb.nonNullable.group({
-    accountId: ['', Validators.required],
-  });
-
-  balance: BalanceDto | null = null;
-  balanceErrorMessage: string | null = null;
-
-  onCheckBalance(): void {
-    if (this.balanceForm.invalid) {
-      this.balanceForm.markAllAsTouched();
-      return;
-    }
-
-    this.balance = null;
-    this.balanceErrorMessage = null;
-
-    const { accountId } = this.balanceForm.getRawValue();
-    this.movementService.getBalance(accountId).subscribe({
-      next: balance => {
-        this.balance = balance;
+    this.userService.createUser(this.form.getRawValue()).subscribe({
+      next: user => {
+        this.createdUser = user;
+        this.form.reset();
       },
       error: (err: { message?: string }) => {
-        this.balanceErrorMessage = err?.message ?? 'An unexpected error occurred.';
+        this.errorMessage = err?.message ?? 'An unexpected error occurred.';
       },
     });
   }

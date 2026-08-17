@@ -11,7 +11,10 @@
 3. Use bootstrap 5 for css library
 
 4. Create a basic accounts component to add an account
-5. Create a basic user component. This will allow a user to perform the move, check balance and statement
+5. Movement and Balance are their own top-level menu items/components (`/movement`, `/balance`),
+   not tabs under User. The User component/menu instead creates the "normal user" record that a
+   movement or transfer's `MovedBy` field is attributed to, for audit purposes — id, name,
+   surname only for now. It does not perform movements, balance checks, or statements itself.
 6. Create a statement component - should filter according to account and date
     - must be able to handle > 50 000 items -> should be performant. 
     - include pagination

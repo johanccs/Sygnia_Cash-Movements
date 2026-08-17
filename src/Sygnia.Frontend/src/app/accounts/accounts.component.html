@@ -1,10 +1,10 @@
 <div class="container pt-2 pb-5">
-  <h1 class="display-6 fw-bold mb-4">Create Account</h1>
+  <h1 class="display-6 mb-4">Create Account</h1>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="col-md-6">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="ledger-card col-md-6">
     <div class="mb-3">
       <label for="accountId" class="form-label">Account Id</label>
-      <input id="accountId" type="text" class="form-control form-control-sm" formControlName="accountId" />
+      <input id="accountId" type="text" class="form-control form-control-sm ledger-id" formControlName="accountId" />
     </div>
 
     <div class="mb-3">
